@@ -16,37 +16,35 @@ const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const nextBtn = document.getElementById('next-btn');
 const quizBackBtn = document.getElementById('quiz-back-btn');
+const loopAlert = document.getElementById('loop-alert');
 const categoryResultTitle = document.getElementById('category-result-title');
-const totalQuestionsText = document.getElementById('total-questions');
 const correctCountText = document.getElementById('correct-count');
 const wrongCountText = document.getElementById('wrong-count');
 const restartBtn = document.getElementById('restart-btn');
 const exportWordBtn = document.getElementById('export-word-btn');
 
-// Ana Yapıyı Başlat ve Dinleyicileri Tek Seferlik Bağla
+// Başlatıcı
 function init() {
     buildCategoryMenu();
     setupGlobalEventListeners();
 }
 
-// Kategorileri Grid Arayüzüne Çizme
 function buildCategoryMenu() {
     if (!categoriesGrid) return;
     categoriesGrid.innerHTML = "";
     
     Object.keys(quizData).forEach(key => {
         const btn = document.createElement('button');
-        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold";
+        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold";
         btn.innerHTML = `
             <span>${quizData[key].title}</span>
-            <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <i class="fas fa-chevron-right text-gray-400 group-hover:text-indigo-500 transition-colors"></i>
         `;
-        btn.addEventListener('click', () => startDynamicQuiz(key));
+        btn.addEventListener('click', () => startSmartQuiz(key));
         categoriesGrid.appendChild(btn);
     });
 }
 
-// Fisher-Yates Karıştırma Metodu (Hem sorular hem şıklar için rastgelelik sağlar)
 function shuffle(array) {
     let temp = [...array];
     for (let i = temp.length - 1; i > 0; i--) {
@@ -56,19 +54,17 @@ function shuffle(array) {
     return temp;
 }
 
-// Seçilen Havuzdan Online Tarzda Tamamen Farklı Soru Kombinasyonu Çekme
-function startDynamicQuiz(categoryKey) {
+function startSmartQuiz(categoryKey) {
     currentCategory = categoryKey;
     
-    // Mevcut havuzdaki soruları tamamen karıştırıp çekiyoruz, her oturum benzersiz olur
-    const rawQuestions = quizData[categoryKey].questions;
+    // Temiz dinamik derin havuz klonlaması
+    const rawQuestions = quizData[categoryKey].questions.map(q => ({...q, hasFailedBefore: false}));
     currentQuestions = shuffle(rawQuestions); 
     
     currentQuestionIndex = 0;
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
     
-    // Ekran Geçişleri
     categoryScreen.classList.replace('block', 'hidden');
     resultScreen.classList.add('hidden');
     quizScreen.classList.replace('hidden', 'block');
@@ -77,17 +73,19 @@ function startDynamicQuiz(categoryKey) {
     loadQuestion();
 }
 
-// Ekrana Soru ve Şıkları Basma
 function loadQuestion() {
     optionSelected = false;
     nextBtn.classList.add('hidden');
+    loopAlert.classList.add('hidden');
     optionsContainer.innerHTML = "";
     
     const currentQuestion = currentQuestions[currentQuestionIndex];
-    progressText.textContent = `Soru: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+    
+    // Kalan aktif soru sayısı göstergesi
+    const remainingCount = currentQuestions.length - currentQuestionIndex;
+    progressText.textContent = `Kalan Benzersiz Soru: ${remainingCount}`;
     questionText.textContent = currentQuestion.q;
     
-    // Şıkları da kendi içerisinde tamamen karıştırarak kopya çekilmesini ve kalıpları engelliyoruz
     let mappedOptions = currentQuestion.options.map((opt, i) => ({ text: opt, isCorrect: i === currentQuestion.answer }));
     mappedOptions = shuffle(mappedOptions);
     
@@ -101,28 +99,33 @@ function loadQuestion() {
     });
 }
 
-// Şık Doğrulama Yönetimi
 function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     if (optionSelected) return;
     optionSelected = true;
     
     const buttons = optionsContainer.querySelectorAll('button');
     let correctIndex = mappedOptions.findIndex(o => o.isCorrect);
-    
+    let activeQuestion = currentQuestions[currentQuestionIndex];
+    let isCorrectAnswer = selectedIndex === correctIndex;
+
+    // Rapor geçmişi kaydı
     userSessionHistory.push({
-        question: currentQuestions[currentQuestionIndex].q,
-        options: mappedOptions.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o.text}`),
+        question: activeQuestion.q,
         userAnswer: String.fromCharCode(65 + selectedIndex),
         correctAnswer: String.fromCharCode(65 + correctIndex),
-        isSuccess: selectedIndex === correctIndex
+        isSuccess: isCorrectAnswer
     });
 
-    if (selectedIndex === correctIndex) {
+    if (isCorrectAnswer) {
         selectedBtn.classList.replace('border-gray-200', 'border-emerald-500');
         selectedBtn.classList.add('bg-emerald-50', 'text-emerald-800');
         selectedBtn.querySelector('span').classList.add('bg-emerald-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-check-circle text-emerald-600 text-xl ml-2"></i>`;
-        score.correct++;
+        
+        // Eğer soru ilk defa gelmiş ve doğru yapılmışsa skora ekle
+        if (!activeQuestion.hasFailedBefore) {
+            score.correct++;
+        }
     } else {
         selectedBtn.classList.replace('border-gray-200', 'border-rose-500');
         selectedBtn.classList.add('bg-rose-50', 'text-rose-800');
@@ -131,15 +134,22 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
         
         const correctBtn = buttons[correctIndex];
         correctBtn.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-800');
+        
+        if (!activeQuestion.hasFailedBefore) {
+            score.wrong++;
+            activeQuestion.hasFailedBefore = true; 
+        }
+
+        // AKILLI DÖNGÜ: Yanlış yapılan soruyu listenin sonuna tekrar ekliyoruz!
+        currentQuestions.push({ ...activeQuestion });
+        loopAlert.classList.remove('hidden');
     }
     
     buttons.forEach(btn => btn.classList.add('pointer-events-none'));
     nextBtn.classList.remove('hidden');
 }
 
-// Global Olay Dinleyicileri (Kilitlenme Yaşanmaması İçin Tek Sefer Tanımlanır)
 function setupGlobalEventListeners() {
-    // Sonraki Soru Butonu
     nextBtn.addEventListener('click', () => {
         currentQuestionIndex++;
         if (currentQuestionIndex < currentQuestions.length) {
@@ -149,88 +159,72 @@ function setupGlobalEventListeners() {
         }
     });
 
-    // Test İçindeki Ana Sayfa / Geri Butonu
     quizBackBtn.addEventListener('click', () => {
-        if(confirm("Mevcut test ilerlemeniz silinecektir. Ana sayfaya dönmek istiyor musiniz?")) {
+        if(confirm("Test ilerlemeniz sıfırlanacaktır. Ana sayfaya dönmek istiyor musunuz?")) {
             goToHomeScreen();
         }
     });
 
-    // Sonuç Ekranındaki Ana Sayfaya Dön Butonu
     restartBtn.addEventListener('click', goToHomeScreen);
-
-    // Word Raporu Aktarım Butonu
     exportWordBtn.addEventListener('click', exportToWordFile);
 }
 
-// Ekranı Sıfırlayıp Ana Sayfaya Güvenli Taşıma Fonksiyonu
 function goToHomeScreen() {
     quizScreen.classList.replace('block', 'hidden');
     resultScreen.classList.add('hidden');
     categoryScreen.classList.replace('hidden', 'block');
-    buildCategoryMenu(); // Dinamik menüyü yenile
+    buildCategoryMenu();
 }
 
-// Sonuç Ekranı Tetikleyicisi
 function showResults() {
     quizScreen.classList.replace('block', 'hidden');
     resultScreen.classList.remove('hidden');
     
     categoryResultTitle.textContent = quizData[currentCategory].title;
-    totalQuestionsText.textContent = currentQuestions.length;
     correctCountText.textContent = score.correct;
     wrongCountText.textContent = score.wrong;
 }
 
-// Word (.docx) Dosya Çıktı Üretim Sistemi
 function exportToWordFile() {
     const categoryName = quizData[currentCategory].title;
     let htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
             <meta charset="utf-8">
-            <title>Test Sonuç Raporu</title>
+            <title>Gelişmiş Çalışma Analiz Raporu</title>
             <style>
                 body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333333; }
-                h1 { color: #1e40af; text-align: center; font-size: 18pt; }
+                h1 { color: #312e81; text-align: center; font-size: 18pt; }
                 .meta { text-align: center; font-style: italic; color: #555555; margin-bottom: 15pt; }
                 .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
                 .summary-table th, .summary-table td { border: 1px solid #dddddd; padding: 8px; text-align: center; }
                 .summary-table th { background-color: #f3f4f6; }
-                .question-block { margin-bottom: 15pt; padding: 8px; border-left: 3px solid #3b82f6; background: #fafafa; }
-                .question-text { font-weight: bold; margin-bottom: 4pt; }
-                .option { margin-left: 12pt; color: #444444; }
+                .item-row { margin-bottom: 12pt; padding: 6px; border-left: 3px solid #6366f1; background: #fafafa; }
                 .status-success { color: #16a34a; font-weight: bold; }
-                .status-fail { color: #dc2626; font-weight: bold; }
+                .status-fail { color: #d97706; font-weight: bold; }
             </style>
         </head>
         <body>
-            <h1>EĞİTİM BİLİMLERİ TEST SONUÇ RAPORU</h1>
+            <h1>AKILLI ÖĞRENME SİSTEMİ DETAYLI ANALİZ RAPORU</h1>
             <div class="meta">Kategori: ${categoryName} | Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
             <table class="summary-table">
                 <thead>
-                    <tr><th>Soru Sayısı</th><th>Doğru</th><th>Yanlış</th><th>Başarı Oranı</th></tr>
+                    <tr><th>İlk Seferde Doğru Yapılan</th><th>Döngüsel Tekrara Düşen Soru Sayısı</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>${userSessionHistory.length}</td>
-                        <td>${score.correct}</td>
-                        <td>${score.wrong}</td>
-                        <td>%${Math.round((score.correct / userSessionHistory.length) * 100)}</td>
-                    </tr>
+                    <tr><td>${score.correct}</td><td>${score.wrong}</td></tr>
                 </tbody>
             </table>
+            <h3>Tüm Yanıt Geçmişi (Kronolojik Akış):</h3>
     `;
 
     userSessionHistory.forEach((item, index) => {
         htmlContent += `
-            <div class="question-block">
-                <div class="question-text">Soru ${index + 1}: ${item.question}</div>
-                ${item.options.map(opt => `<div class="option">${opt}</div>`).join('')}
-                <div style="margin-top: 5pt; font-size: 10pt;">
-                    <span><b>Sizin Cevabınız:</b> ${item.userAnswer}</span> | 
-                    <span><b>Doğru Cevap:</b> ${item.correctAnswer}</span> -> 
-                    <span class="${item.isSuccess ? 'status-success' : 'status-fail'}">${item.isSuccess ? 'DOĞRU' : 'YANLIŞ'}</span>
+            <div class="item-row">
+                <div><b>Adım ${index + 1}:</b> ${item.question}</div>
+                <div style="font-size: 10pt; margin-top:3px;">
+                    Cevabınız: ${item.userAnswer} | Doğru Şık: ${item.correctAnswer} -> 
+                    <span class="${item.isSuccess ? 'status-success' : 'status-fail'}">${item.isSuccess ? 'BAŞARILI' : 'DÖNGÜYE GÖNDERİLDİ (HATA)'}</span>
                 </div>
             </div>
         `;
@@ -242,12 +236,11 @@ function exportToWordFile() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `KPSS_Sonuc_${currentCategory}.doc`;
+    a.download = `Akilli_Ogrenme_Analizi_${currentCategory}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
-// DOM Yüklendiğinde Tetikle
 document.addEventListener('DOMContentLoaded', init);
