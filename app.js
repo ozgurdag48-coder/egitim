@@ -3,9 +3,9 @@ let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = { correct: 0, wrong: 0 };
 let optionSelected = false;
-let userSessionHistory = []; // Word raporu üretmek için verileri tutar
+let userSessionHistory = [];
 
-// DOM Elementleri
+// DOM Ögeleri
 const categoryScreen = document.getElementById('category-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const resultScreen = document.getElementById('result-screen');
@@ -23,57 +23,61 @@ const wrongCountText = document.getElementById('wrong-count');
 const restartBtn = document.getElementById('restart-btn');
 const exportWordBtn = document.getElementById('export-word-btn');
 
-// Uygulama Başlangıcı
+// Ana Yapıyı Başlat ve Dinleyicileri Tek Seferlik Bağla
 function init() {
+    buildCategoryMenu();
+    setupGlobalEventListeners();
+}
+
+// Kategorileri Grid Arayüzüne Çizme
+function buildCategoryMenu() {
     if (!categoriesGrid) return;
     categoriesGrid.innerHTML = "";
-    userSessionHistory = [];
     
-    if (typeof quizData === 'undefined') {
-        console.error("Hata: quizData nesnesine erişilemedi.");
-        return;
-    }
-
     Object.keys(quizData).forEach(key => {
         const btn = document.createElement('button');
-        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full";
+        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold";
         btn.innerHTML = `
-            <span class="font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">${quizData[key].title}</span>
+            <span>${quizData[key].title}</span>
             <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
         `;
-        btn.addEventListener('click', () => startQuiz(key));
+        btn.addEventListener('click', () => startDynamicQuiz(key));
         categoriesGrid.appendChild(btn);
     });
 }
 
-// Fisher-Yates Algoritması ile Karıştırma (Tekrarı ve Sıralı Kalıpları Önler)
+// Fisher-Yates Karıştırma Metodu (Hem sorular hem şıklar için rastgelelik sağlar)
 function shuffle(array) {
-    let shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
+    let temp = [...array];
+    for (let i = temp.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        [temp[i], temp[j]] = [temp[j], temp[i]];
     }
-    return shuffled;
+    return temp;
 }
 
-// Testi Başlat
-function startQuiz(categoryKey) {
+// Seçilen Havuzdan Online Tarzda Tamamen Farklı Soru Kombinasyonu Çekme
+function startDynamicQuiz(categoryKey) {
     currentCategory = categoryKey;
-    // Soruları karıştırıyoruz
-    currentQuestions = shuffle(quizData[categoryKey].questions);
+    
+    // Mevcut havuzdaki soruları tamamen karıştırıp çekiyoruz, her oturum benzersiz olur
+    const rawQuestions = quizData[categoryKey].questions;
+    currentQuestions = shuffle(rawQuestions); 
+    
     currentQuestionIndex = 0;
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
     
-    categoryScreen.classList.add('hidden');
+    // Ekran Geçişleri
+    categoryScreen.classList.replace('block', 'hidden');
     resultScreen.classList.add('hidden');
-    quizScreen.classList.remove('hidden');
+    quizScreen.classList.replace('hidden', 'block');
     
     quizTitle.textContent = quizData[categoryKey].title;
     loadQuestion();
 }
 
-// Soru Yükle
+// Ekrana Soru ve Şıkları Basma
 function loadQuestion() {
     optionSelected = false;
     nextBtn.classList.add('hidden');
@@ -83,29 +87,28 @@ function loadQuestion() {
     progressText.textContent = `Soru: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
     questionText.textContent = currentQuestion.q;
     
-    // Şıkların orijinal hallerini koruyarak indeks takibi için eşliyoruz ve şıkları da karıştırıyoruz
+    // Şıkları da kendi içerisinde tamamen karıştırarak kopya çekilmesini ve kalıpları engelliyoruz
     let mappedOptions = currentQuestion.options.map((opt, i) => ({ text: opt, isCorrect: i === currentQuestion.answer }));
     mappedOptions = shuffle(mappedOptions);
     
     mappedOptions.forEach((option, index) => {
         const btn = document.createElement('button');
-        btn.className = "w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-150 cursor-pointer flex items-center font-medium text-gray-700 bg-white";
+        btn.className = "w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-slate-50 transition-colors duration-150 cursor-pointer flex items-center font-medium text-gray-700 bg-white";
         btn.innerHTML = `<span class="inline-block bg-gray-100 text-gray-600 rounded-md px-2 py-1 mr-3 text-sm font-bold">${String.fromCharCode(65 + index)}</span> <span class="flex-1">${option.text}</span>`;
         
-        btn.addEventListener('click', () => selectOption(btn, index, mappedOptions));
+        btn.addEventListener('click', () => handleOptionSelection(btn, index, mappedOptions));
         optionsContainer.appendChild(btn);
     });
 }
 
-// Şık Seçimi ve Doğru-Yanlış Denetimi
-function selectOption(selectedBtn, selectedIndex, mappedOptions) {
+// Şık Doğrulama Yönetimi
+function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     if (optionSelected) return;
     optionSelected = true;
     
     const buttons = optionsContainer.querySelectorAll('button');
     let correctIndex = mappedOptions.findIndex(o => o.isCorrect);
     
-    // Kullanıcı geçmişi kaydı
     userSessionHistory.push({
         question: currentQuestions[currentQuestionIndex].q,
         options: mappedOptions.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o.text}`),
@@ -115,49 +118,62 @@ function selectOption(selectedBtn, selectedIndex, mappedOptions) {
     });
 
     if (selectedIndex === correctIndex) {
-        selectedBtn.classList.remove('border-gray-200', 'hover:bg-gray-50');
-        selectedBtn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800');
+        selectedBtn.classList.replace('border-gray-200', 'border-emerald-500');
+        selectedBtn.classList.add('bg-emerald-50', 'text-emerald-800');
         selectedBtn.querySelector('span').classList.add('bg-emerald-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-check-circle text-emerald-600 text-xl ml-2"></i>`;
         score.correct++;
     } else {
-        selectedBtn.classList.remove('border-gray-200', 'hover:bg-gray-50');
-        selectedBtn.classList.add('bg-rose-50', 'border-rose-500', 'text-rose-800');
+        selectedBtn.classList.replace('border-gray-200', 'border-rose-500');
+        selectedBtn.classList.add('bg-rose-50', 'text-rose-800');
         selectedBtn.querySelector('span').classList.add('bg-rose-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-times-circle text-rose-600 text-xl ml-2"></i>`;
         
-        // Doğru şıkkı yeşille vurgula
         const correctBtn = buttons[correctIndex];
         correctBtn.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-800');
-        score.wrong++;
     }
     
     buttons.forEach(btn => btn.classList.add('pointer-events-none'));
     nextBtn.classList.remove('hidden');
 }
 
-// Sonraki Soru Tetikleyicisi
-nextBtn.addEventListener('click', () => {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < currentQuestions.length) {
-        loadQuestion();
-    } else {
-        showResults();
-    }
-});
+// Global Olay Dinleyicileri (Kilitlenme Yaşanmaması İçin Tek Sefer Tanımlanır)
+function setupGlobalEventListeners() {
+    // Sonraki Soru Butonu
+    nextBtn.addEventListener('click', () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
 
-// Geri / Ana Sayfa Buton Ataması
-quizBackBtn.addEventListener('click', () => {
-    if(confirm("Testten çıkmak ve ana sayfaya dönmek istediğinize emin misiniz? İlerlemeniz silinecektir.")) {
-        quizScreen.classList.add('hidden');
-        categoryScreen.classList.remove('hidden');
-        init();
-    }
-});
+    // Test İçindeki Ana Sayfa / Geri Butonu
+    quizBackBtn.addEventListener('click', () => {
+        if(confirm("Mevcut test ilerlemeniz silinecektir. Ana sayfaya dönmek istiyor musiniz?")) {
+            goToHomeScreen();
+        }
+    });
 
-// Sonuç Ekranı Sunumu
+    // Sonuç Ekranındaki Ana Sayfaya Dön Butonu
+    restartBtn.addEventListener('click', goToHomeScreen);
+
+    // Word Raporu Aktarım Butonu
+    exportWordBtn.addEventListener('click', exportToWordFile);
+}
+
+// Ekranı Sıfırlayıp Ana Sayfaya Güvenli Taşıma Fonksiyonu
+function goToHomeScreen() {
+    quizScreen.classList.replace('block', 'hidden');
+    resultScreen.classList.add('hidden');
+    categoryScreen.classList.replace('hidden', 'block');
+    buildCategoryMenu(); // Dinamik menüyü yenile
+}
+
+// Sonuç Ekranı Tetikleyicisi
 function showResults() {
-    quizScreen.classList.add('hidden');
+    quizScreen.classList.replace('block', 'hidden');
     resultScreen.classList.remove('hidden');
     
     categoryResultTitle.textContent = quizData[currentCategory].title;
@@ -166,25 +182,24 @@ function showResults() {
     wrongCountText.textContent = score.wrong;
 }
 
-// Word Belgesi (.docx) Aktarım Motoru
-exportWordBtn.addEventListener('click', () => {
+// Word (.docx) Dosya Çıktı Üretim Sistemi
+function exportToWordFile() {
     const categoryName = quizData[currentCategory].title;
-    
-    // Word HTML Şablon Yapısı
     let htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
+            <meta charset="utf-8">
             <title>Test Sonuç Raporu</title>
             <style>
                 body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333333; }
-                h1 { color: #1e40af; text-align: center; font-size: 20pt; margin-bottom: 5pt; }
-                .meta { text-align: center; font-style: italic; color: #555555; margin-bottom: 20pt; }
-                .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 25pt; }
+                h1 { color: #1e40af; text-align: center; font-size: 18pt; }
+                .meta { text-align: center; font-style: italic; color: #555555; margin-bottom: 15pt; }
+                .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
                 .summary-table th, .summary-table td { border: 1px solid #dddddd; padding: 8px; text-align: center; }
-                .summary-table th { bg-color: #f3f4f6; font-weight: bold; }
-                .question-block { margin-bottom: 20pt; padding: 10px; border-left: 3px solid #3b82f6; background: #fafafa; }
-                .question-text { font-weight: bold; font-size: 11pt; margin-bottom: 5pt; }
-                .option { margin-left: 15pt; font-size: 10.5pt; color: #444444; }
+                .summary-table th { background-color: #f3f4f6; }
+                .question-block { margin-bottom: 15pt; padding: 8px; border-left: 3px solid #3b82f6; background: #fafafa; }
+                .question-text { font-weight: bold; margin-bottom: 4pt; }
+                .option { margin-left: 12pt; color: #444444; }
                 .status-success { color: #16a34a; font-weight: bold; }
                 .status-fail { color: #dc2626; font-weight: bold; }
             </style>
@@ -192,15 +207,9 @@ exportWordBtn.addEventListener('click', () => {
         <body>
             <h1>EĞİTİM BİLİMLERİ TEST SONUÇ RAPORU</h1>
             <div class="meta">Kategori: ${categoryName} | Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
-            
             <table class="summary-table">
                 <thead>
-                    <tr>
-                        <th>Soru Sayısı</th>
-                        <th>Doğru Cevap</th>
-                        <th>Yanlış Cevap</th>
-                        <th>Başarı Oranı</th>
-                    </tr>
+                    <tr><th>Soru Sayısı</th><th>Doğru</th><th>Yanlış</th><th>Başarı Oranı</th></tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -211,8 +220,6 @@ exportWordBtn.addEventListener('click', () => {
                     </tr>
                 </tbody>
             </table>
-            
-            <hr style="border: 0; border-top: 1px solid #eeeeee; margin-bottom: 20pt;"/>
     `;
 
     userSessionHistory.forEach((item, index) => {
@@ -220,7 +227,7 @@ exportWordBtn.addEventListener('click', () => {
             <div class="question-block">
                 <div class="question-text">Soru ${index + 1}: ${item.question}</div>
                 ${item.options.map(opt => `<div class="option">${opt}</div>`).join('')}
-                <div style="margin-top: 6pt; font-size: 10pt;">
+                <div style="margin-top: 5pt; font-size: 10pt;">
                     <span><b>Sizin Cevabınız:</b> ${item.userAnswer}</span> | 
                     <span><b>Doğru Cevap:</b> ${item.correctAnswer}</span> -> 
                     <span class="${item.isSuccess ? 'status-success' : 'status-fail'}">${item.isSuccess ? 'DOĞRU' : 'YANLIŞ'}</span>
@@ -231,31 +238,16 @@ exportWordBtn.addEventListener('click', () => {
 
     htmlContent += `</body></html>`;
 
-    // Blob verisi oluşturma ve indirtme adımı
-    const blob = new Blob(['\ufeff' + htmlContent], {
-        type: 'application/msword'
-    });
-    
+    const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `KPSS_Test_Raporu_${currentCategory}_${new Date().toISOString().slice(0,10)}.doc`;
+    a.download = `KPSS_Sonuc_${currentCategory}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-});
-
-// Ana Sayfa Tetikleyicisi
-restartBtn.addEventListener('click', () => {
-    resultScreen.classList.add('hidden');
-    categoryScreen.classList.remove('hidden');
-    init();
-});
-
-// Sayfa Yüklendiğinde Başlat
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
 }
+
+// DOM Yüklendiğinde Tetikle
+document.addEventListener('DOMContentLoaded', init);
