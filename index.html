@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eğitim Bilimleri Online Test Portalı</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col justify-between">
@@ -16,13 +16,13 @@
 
     <main class="container mx-auto max-w-3xl p-4 flex-grow flex flex-col justify-center">
         
-        <div id="category-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Lütfen Test Etmek İstediğiniz Alanı Seçiniz</h2>
-            <div id="categories-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="category-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Lütfen Test Etmek İstediğiniz Alanı Seçiniz</h2>
+            <div id="categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-h-[100px]">
                 </div>
         </div>
 
-        <div id="quiz-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 hidden">
+        <div id="quiz-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 hidden w-full">
             <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
                 <span id="quiz-title" class="text-sm font-semibold text-blue-600 uppercase tracking-wider">Kategori</span>
                 <span id="progress" class="text-sm text-gray-500 font-medium">Soru: 1/10</span>
@@ -36,13 +36,13 @@
                 </div>
 
             <div class="mt-6 flex justify-end">
-                <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 hidden shadow-md">
+                <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 hidden shadow-md cursor-pointer">
                     Sonraki Soru <i class="fas fa-arrow-right ml-2"></i>
                 </button>
             </div>
         </div>
 
-        <div id="result-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center hidden">
+        <div id="result-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center hidden w-full">
             <div class="text-6xl text-yellow-500 mb-4">
                 <i class="fas fa-trophy"></i>
             </div>
@@ -64,9 +64,8 @@
                 </div>
             </div>
 
-            <button id="restart-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 shadow-md">
+            <button id="restart-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 shadow-md cursor-pointer">
                 <i class="fas fa-redo mr-2"></i> Yeni Test Başlat
-                
             </button>
         </div>
 
@@ -77,5 +76,7 @@
         <p class="mt-1 text-gray-500">powered by ÖZGÜR DAĞ</p>
     </footer>
 
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

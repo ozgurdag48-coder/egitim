@@ -22,10 +22,19 @@ const restartBtn = document.getElementById('restart-btn');
 
 // Uygulama Başlangıcı: Kategorileri Listele
 function init() {
+    if (!categoriesGrid) return;
     categoriesGrid.innerHTML = "";
+    
+    // quizData nesnesinin yüklenip yüklenmediğini kontrol et
+    if (typeof quizData === 'undefined') {
+        console.error("Hata: quizData bulunamadı! 'questions.js' dosyasının doğru yüklendiğinden emin olun.");
+        return;
+    }
+
     Object.keys(quizData).forEach(key => {
         const btn = document.createElement('button');
-        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-xs hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group";
+        // shadow-xs yerine shadow-sm kullanarak uyumluluğu artırdık
+        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full";
         btn.innerHTML = `
             <span class="font-medium text-gray-700 group-hover:text-blue-600 transition-colors">${quizData[key].title}</span>
             <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
@@ -48,7 +57,6 @@ function shuffleArray(array) {
 // Testi Başlat
 function startQuiz(categoryKey) {
     currentCategory = categoryKey;
-    // Soruları karıştırarak klonluyoruz, böylece sıra her seferinde değişiyor
     currentQuestions = shuffleArray(quizData[categoryKey].questions);
     currentQuestionIndex = 0;
     score = { correct: 0, wrong: 0 };
@@ -80,9 +88,9 @@ function loadQuestion() {
     });
 }
 
-// Şık Seçimi (Doğru / Yanlış Belirteci)
+// Şık Seçimi
 function selectOption(selectedBtn, optionIndex) {
-    if (optionSelected) return; // Birden fazla tıklamayı engelle
+    if (optionSelected) return;
     optionSelected = true;
     
     const currentQuestion = currentQuestions[currentQuestionIndex];
@@ -90,41 +98,37 @@ function selectOption(selectedBtn, optionIndex) {
     const buttons = optionsContainer.querySelectorAll('button');
     
     if (optionIndex === correctIndex) {
-        // Doğru Seçim
         selectedBtn.classList.remove('border-gray-200', 'hover:bg-gray-50');
         selectedBtn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800');
         selectedBtn.querySelector('span').classList.add('bg-emerald-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-check-circle text-emerald-600 text-xl ml-2"></i>`;
         score.correct++;
     } else {
-        // Yanlış Seçim
         selectedBtn.classList.remove('border-gray-200', 'hover:bg-gray-50');
         selectedBtn.classList.add('bg-rose-50', 'border-rose-500', 'text-rose-800');
         selectedBtn.querySelector('span').classList.add('bg-rose-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-times-circle text-rose-600 text-xl ml-2"></i>`;
         
-        // Doğru Şıkkı da Göster
         const correctBtn = buttons[correctIndex];
         correctBtn.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-800');
         score.wrong++;
     }
     
-    // Diğer butonların hover efektini ve tıklanabilirliğini kaldır
     buttons.forEach(btn => btn.classList.add('pointer-events-none'));
-    
-    // Sonraki Soru butonunu aktifleştir
     nextBtn.classList.remove('hidden');
 }
 
-// Sonraki Soru Buton Olayı
-nextBtn.addEventListener('click', () => {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < currentQuestions.length) {
-        loadQuestion();
-    } else {
-        showResults();
-    }
-});
+// Sonraki Soru Butonu
+if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+}
 
 // Sonuç Ekranı
 function showResults() {
@@ -138,11 +142,17 @@ function showResults() {
 }
 
 // Başa Dön
-restartBtn.addEventListener('click', () => {
-    resultScreen.classList.add('hidden');
-    categoryScreen.classList.remove('hidden');
-    init();
-});
+if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+        resultScreen.classList.add('hidden');
+        categoryScreen.classList.remove('hidden');
+        init();
+    });
+}
 
-// Sayfa Yüklendiğinde Başlat
-document.addEventListener('DOMContentLoaded', init);
+// DOM tamamen hazır olduğunda init fonksiyonunu tetikle
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
