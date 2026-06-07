@@ -8,27 +8,26 @@ const categoriesConfig = {
     "oe": "Özel Eğitim"
 };
 
-// Online Soru Üretim Motoru Parametre Havuzu (KPSS ve KKTC KHK formatında)
+// Genişletilmiş Online Soru Üretim Motoru (KPSS ve KKTC KHK formatına uygun çeldiriciler)
 const onlineQuestionGenerator = {
-    // Öğretim İlke ve Yöntemleri için dinamik varyasyonlar
     "oiy": [
         {
             template: "Bir öğretmenin ders işlerken [param1] ilkesini temel alarak [param2] yapması, ÖSYM ve KKTC KHK pedagoji kriterlerine göre öncelikle hangi öğretim yaklaşımını destekler?",
             variants: [
-                { p1: "hayatilik (yaşamsallık)", p2: "öğrencilere günlük yaşamdan güncel örnekler vermesi", opts: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Programlı Öğretim", "Mikro Öğretim", "Tam Öğrenme Modeli"], ans: 0 },
-                { p1: "somuttan soyuta", p2: "üç boyutlu geometrik cisim maketleri kullanması", opts: ["Buluş Yoluyla Öğretim", "Doğrudan Öğretim", "Anlamlı Öğrenme", "Basamaklı Öğretim", "Kuantum Öğrenme"], ans: 0 },
-                { p1: "bilinenden bilinmeyene", p2: "geçen haftaki konunun özetini hatırlatarak yeni konuya geçmesi", opts: ["Sunuş Yoluyla Öğretim", "Araştırma İnceleme", "Probleme Dayalı Öğrenme", "İş Birliğine Dayalı Öğrenme", "Dinamik Öğrenme"], ans: 0 }
+                { p1: "hayatilik (yaşamsallık)", p2: "öğrencilere günlük yaşamdan ve güncel olaylardan örnekler vermesi", opts: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Programlı Öğretim", "Mikro Öğretim", "Tam Öğrenme Modeli"], ans: 0 },
+                { p1: "somuttan soyuta", p2: "üç boyutlu geometrik cisim maketleri ve materyaller kullanması", opts: ["Buluş Yoluyla Öğretim", "Doğrudan Öğretim", "Anlamlı Öğrenme", "Basamaklı Öğretim", "Kuantum Öğrenme"], ans: 0 },
+                { p1: "bilinenden bilinmeyene", p2: "geçen haftaki konunun özetini hatırlatarak yeni konuya geçmesi", opts: ["Sunuş Yoluyla Öğretim", "Araştırma İnceleme", "Probleme Dayalı Öğrenme", "İş Birliğine Dayalı Öğrenme", "Dinamik Öğrenme"], ans: 0 },
+                { p1: "öğrenciye görelik", p2: "öğrencilerin bireysel ilgi, ihtiyaç ve hazırbulunuşluk düzeylerini kılavuz edinmesi", opts: ["Bireyselleştirilmiş Öğretim", "Sunuş Stratejisi", "Geleneksel Yaklaşım", "Tümdengelim Modeli", "Ezberci Yaklaşım"], ans: 0 }
             ]
         },
         {
             template: "KKTC Kamu Hizmeti Komisyonu öğretmenlik sınavı mülakat kuralları ve çağdaş eğitim akımları düşünüldüğünde; öğrencilerin [param1] yoluyla [param2] becerilerini geliştirmeyi amaçlayan bir uzman, hangi tekniği öncelikli kılmalıdır?",
             variants: [
-                { p1: "akran değerlendirme", p2: "öz eleştiri ve metabilişsel", opts: ["Yansıtıcı Düşünme", "Ezberci Öğrenme", "Davranışçı Yaklaşım", "Geleneksel Anlatım", "Tümdengelim"], ans: 0 },
-                { p1: "iş birliği grupları", p2: "birlikte çalışma ve empati", opts: ["Kubaşık Öğrenme", "Bireysel Öğretim", "Programlı Öğretim", "Sorgulayıcı Strateji", "Sunuş Yaklaşımı"], ans: 0 }
+                { p1: "yansıtıcı düşünme", p2: "öz eleştiri ve metabilişsel süreç geliştirme", opts: ["Yansıtıcı Düşünme", "Ezberci Öğrenme", "Davranışçı Yaklaşım", "Geleneksel Anlatım", "Tümdengelim"], ans: 0 },
+                { p1: "iş birliği grupları", p2: "birlikte çalışma, sorumluluk ve empati", opts: ["Kubaşık Öğrenme", "Bireysel Öğretim", "Programlı Öğretim", "Sorgulayıcı Strateji", "Sunuş Yaklaşımı"], ans: 0 }
             ]
         }
     ],
-    // Sınıf Yönetimi için dinamik varyasyonlar
     "sy": [
         {
             template: "Sınıf içerisinde [param1] durumuyla karşılaşan bir öğretmenin, KKTC Kamu Görevlileri Yasası ilkeleri ve modern sınıf yönetimi yaklaşımları uyarınca yapması gereken ilk hamle ne olmalıdır?",
@@ -38,7 +37,6 @@ const onlineQuestionGenerator = {
             ]
         }
     ],
-    // Materyal Tasarımı
     "otmt": [
         {
             template: "Dale'in Yaşantı Konisi ve KPSS materyal tasarımı ilkelerine göre, [param1] yoluyla edinilen yaşantılar, [param2] oranla daha kalıcı ve somuttur. Boşluğa ne gelmelidir?",
@@ -47,7 +45,6 @@ const onlineQuestionGenerator = {
             ]
         }
     ],
-    // Öğrenme Psikolojisi
     "op": [
         {
             template: "Klasik ve Edimsel koşullanma süreçleri düşünüldüğünde, organizmanın [param1] durumuna bağlı olarak [param2] göstermesi hangi kavramla açıklanır?",
@@ -57,7 +54,6 @@ const onlineQuestionGenerator = {
             ]
         }
     ],
-    // Gelişim Psikolojisi
     "gp": [
         {
             template: "Piaget ve Erikson'ın gelişim kuramlarına göre, [param1] döneminde bulunan bir bireyin [param2] eğilimi göstermesi gelişim krizinin normal bir parçasıdır. Bu dönem hangisidir?",
@@ -66,7 +62,6 @@ const onlineQuestionGenerator = {
             ]
         }
     ],
-    // Özel Eğitim
     "oe": [
         {
             template: "Özel eğitim standartlarında ve çağdaş mevzuatta yer alan [param1] kavramı, bireyin [param2] amacını taşır. Bu tanım aşağıdakilerden hangisine aittir?",
@@ -77,7 +72,7 @@ const onlineQuestionGenerator = {
     ]
 };
 
-// Global Değişkenler
+// Küresel Durum Yönetimi
 let currentCategory = "";
 let currentQuestions = [];
 let currentQuestionIndex = 0;
@@ -85,46 +80,29 @@ let score = { correct: 0, wrong: 0 };
 let optionSelected = false;
 let userSessionHistory = [];
 
-// DOM Ögeleri
-const categoryScreen = document.getElementById('category-screen');
-const quizScreen = document.getElementById('quiz-screen');
-const resultScreen = document.getElementById('result-screen');
-const categoriesGrid = document.getElementById('categories-grid');
-const quizTitle = document.getElementById('quiz-title');
-const progressText = document.getElementById('progress');
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const nextBtn = document.getElementById('next-btn');
-const quizBackBtn = document.getElementById('quiz-back-btn');
-const loopAlert = document.getElementById('loop-alert');
-const categoryResultTitle = document.getElementById('category-result-title');
-const correctCountText = document.getElementById('correct-count');
-const wrongCountText = document.getElementById('wrong-count');
-const restartBtn = document.getElementById('restart-btn');
-const exportWordBtn = document.getElementById('export-word-btn');
-
-function init() {
-    buildCategoryMenu();
-    setupGlobalEventListeners();
+// DOM Elemanları (Null güvenliği için dinamik seçiciler kullanılacak)
+function getElements() {
+    return {
+        categoryScreen: document.getElementById('category-screen'),
+        quizScreen: document.getElementById('quiz-screen'),
+        resultScreen: document.getElementById('result-screen'),
+        categoriesGrid: document.getElementById('categories-grid'),
+        quizTitle: document.getElementById('quiz-title'),
+        progressText: document.getElementById('progress'),
+        questionText: document.getElementById('question-text'),
+        optionsContainer: document.getElementById('options-container'),
+        nextBtn: document.getElementById('next-btn'),
+        quizBackBtn: document.getElementById('quiz-back-btn'),
+        loopAlert: document.getElementById('loop-alert'),
+        categoryResultTitle: document.getElementById('category-result-title'),
+        correctCountText: document.getElementById('correct-count'),
+        wrongCountText: document.getElementById('wrong-count'),
+        restartBtn: document.getElementById('restart-btn'),
+        exportWordBtn: document.getElementById('export-word-btn')
+    };
 }
 
-// Menü Oluşturma (Sadece İstenen Eski Konular)
-function buildCategoryMenu() {
-    if (!categoriesGrid) return;
-    categoriesGrid.innerHTML = "";
-    
-    Object.keys(categoriesConfig).forEach(key => {
-        const btn = document.createElement('button');
-        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold";
-        btn.innerHTML = `
-            <span>${categoriesConfig[key]}</span>
-            <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-        `;
-        btn.addEventListener('click', () => startOnlineDynamicQuiz(key));
-        categoriesGrid.appendChild(btn);
-    });
-}
-
+// Fisher-Yates Karıştırma Metodu
 function shuffle(array) {
     let temp = [...array];
     for (let i = temp.length - 1; i > 0; i--) {
@@ -134,7 +112,37 @@ function shuffle(array) {
     return temp;
 }
 
-// ONLINE SİMÜLASYON MOTORU: Her tıklandığında tamamen rastgele ve farklı kombinasyonlar derler
+// Kategorileri Arayüze Sorunsuz ve Güvenli Çizme Fonksiyonu
+function buildCategoryMenu() {
+    const el = getElements();
+    if (!el.categoriesGrid) return;
+    
+    el.categoriesGrid.innerHTML = "";
+    
+    // Görünürlük garantisi için arayüz sınıflarını kontrol et
+    if (el.categoryScreen) {
+        el.categoryScreen.classList.remove('hidden');
+        el.categoryScreen.style.display = 'block';
+    }
+    
+    Object.keys(categoriesConfig).forEach(key => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold mb-2";
+        btn.innerHTML = `
+            <span class="flex items-center gap-3">
+                <i class="fas fa-book-reader text-blue-600 group-hover:scale-110 transition-transform"></i>
+                ${categoriesConfig[key]}
+            </span>
+            <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+        `;
+        
+        btn.addEventListener('click', () => startOnlineDynamicQuiz(key));
+        el.categoriesGrid.appendChild(btn);
+    });
+}
+
+// Online Soru Üretim ve Format Derleme Motoru
 function startOnlineDynamicQuiz(categoryKey) {
     currentCategory = categoryKey;
     currentQuestions = [];
@@ -142,7 +150,6 @@ function startOnlineDynamicQuiz(categoryKey) {
     const blueprints = onlineQuestionGenerator[categoryKey];
     
     if (blueprints && blueprints.length > 0) {
-        // Havuz mantığı: Şablonları oku, rastgele parametreleri eşle ve taze sorular üret
         blueprints.forEach(bp => {
             bp.variants.forEach(variant => {
                 let generatedText = bp.template
@@ -159,31 +166,43 @@ function startOnlineDynamicQuiz(categoryKey) {
         });
     }
 
-    // Soruları karıştırarak eşsiz bir akış sun
+    // Havuzu karıştır
     currentQuestions = shuffle(currentQuestions);
     
-    // Eğer üretilen soru sayısı az ise dinamik yapay zeka klonları ekle (Havuz genişletme simülasyonu)
-    if (currentQuestions.length < 5) {
-        currentQuestions = [...currentQuestions, ...currentQuestions.map(q => ({...q, q: "[YENİ GÜNCEL NESİL] " + q.q}))];
+    // Test havuzunun zengin görünmesi için derin üretim kopyaları oluştur (Online Simülasyon)
+    if (currentQuestions.length > 0 && currentQuestions.length < 8) {
+        let extraQuestions = currentQuestions.map(q => ({
+            ...q,
+            q: "[YENİ GÜNCEL SORU] " + q.q,
+            options: shuffle(q.options)
+        }));
+        currentQuestions = [...currentQuestions, ...shuffle(extraQuestions)];
     }
     
     currentQuestionIndex = 0;
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
     
-    categoryScreen.classList.replace('block', 'hidden');
-    resultScreen.classList.add('hidden');
-    quizScreen.classList.replace('hidden', 'block');
+    const el = getElements();
+    if (el.categoryScreen) el.categoryScreen.style.display = 'none';
+    if (el.resultScreen) el.resultScreen.classList.add('hidden');
+    if (el.quizScreen) {
+        el.quizScreen.classList.remove('hidden');
+        el.quizScreen.style.display = 'block';
+    }
     
-    quizTitle.textContent = categoriesConfig[categoryKey];
+    if (el.quizTitle) el.quizTitle.textContent = categoriesConfig[categoryKey];
     loadQuestion();
 }
 
+// Ekrana Soru ve Şıkları Basma
 function loadQuestion() {
     optionSelected = false;
-    nextBtn.classList.add('hidden');
-    loopAlert.classList.add('hidden');
-    optionsContainer.innerHTML = "";
+    const el = getElements();
+    
+    if (el.nextBtn) el.nextBtn.classList.add('hidden');
+    if (el.loopAlert) el.loopAlert.classList.add('hidden');
+    if (el.optionsContainer) el.optionsContainer.innerHTML = "";
     
     if (currentQuestionIndex >= currentQuestions.length) {
         showResults();
@@ -192,27 +211,32 @@ function loadQuestion() {
 
     const currentQuestion = currentQuestions[currentQuestionIndex];
     const remainingCount = currentQuestions.length - currentQuestionIndex;
-    progressText.textContent = `Kalan Aktif Soru: ${remainingCount}`;
-    questionText.textContent = currentQuestion.q;
     
+    if (el.progressText) el.progressText.textContent = `Kalan Aktif Soru: ${remainingCount}`;
+    if (el.questionText) el.questionText.textContent = currentQuestion.q;
+    
+    // Şıkları kendi içerisinde harmanla
     let mappedOptions = currentQuestion.options.map((opt, i) => ({ text: opt, isCorrect: i === currentQuestion.answer }));
     mappedOptions = shuffle(mappedOptions);
     
     mappedOptions.forEach((option, index) => {
         const btn = document.createElement('button');
-        btn.className = "w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-slate-50 transition-colors duration-150 cursor-pointer flex items-center font-medium text-gray-700 bg-white";
+        btn.type = "button";
+        btn.className = "w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-slate-50 transition-colors duration-150 cursor-pointer flex items-center font-medium text-gray-700 bg-white mb-2 shadow-sm";
         btn.innerHTML = `<span class="inline-block bg-gray-100 text-gray-600 rounded-md px-2 py-1 mr-3 text-sm font-bold">${String.fromCharCode(65 + index)}</span> <span class="flex-1">${option.text}</span>`;
         
         btn.addEventListener('click', () => handleOptionSelection(btn, index, mappedOptions));
-        optionsContainer.appendChild(btn);
+        if (el.optionsContainer) el.optionsContainer.appendChild(btn);
     });
 }
 
+// Akıllı Döngüsel Seçim ve Yanlış Soruyu Arkaya Ekleme Mantığı
 function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     if (optionSelected) return;
     optionSelected = true;
     
-    const buttons = optionsContainer.querySelectorAll('button');
+    const el = getElements();
+    const buttons = el.optionsContainer.querySelectorAll('button');
     let correctIndex = mappedOptions.findIndex(o => o.isCorrect);
     let activeQuestion = currentQuestions[currentQuestionIndex];
     let isCorrectAnswer = selectedIndex === correctIndex;
@@ -225,8 +249,8 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     });
 
     if (isCorrectAnswer) {
-        selectedBtn.classList.replace('border-gray-200', 'border-emerald-500');
-        selectedBtn.classList.add('bg-emerald-50', 'text-emerald-800');
+        selectedBtn.classList.remove('border-gray-200');
+        selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
         selectedBtn.querySelector('span').classList.add('bg-emerald-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-check-circle text-emerald-600 text-xl ml-2"></i>`;
         
@@ -234,8 +258,8 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
             score.correct++;
         }
     } else {
-        selectedBtn.classList.replace('border-gray-200', 'border-rose-500');
-        selectedBtn.classList.add('bg-rose-50', 'text-rose-800');
+        selectedBtn.classList.remove('border-gray-200');
+        selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-800');
         selectedBtn.querySelector('span').classList.add('bg-rose-500', 'text-white');
         selectedBtn.innerHTML += `<i class="fas fa-times-circle text-rose-600 text-xl ml-2"></i>`;
         
@@ -247,46 +271,66 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
             activeQuestion.hasFailedBefore = true; 
         }
 
-        // AKILLI ÖĞRENME DÖNGÜSÜ: Soru doğru yapılana kadar dizinin sonuna eklenir.
+        // SORUYU DOĞRU YAPANA KADAR HAVUZUN SONUNA EKLE
         currentQuestions.push({ ...activeQuestion });
-        loopAlert.classList.remove('hidden');
+        if (el.loopAlert) el.loopAlert.classList.remove('hidden');
     }
     
     buttons.forEach(btn => btn.classList.add('pointer-events-none'));
-    nextBtn.classList.remove('hidden');
+    if (el.nextBtn) el.nextBtn.classList.remove('hidden');
 }
 
+// Olay Dinleyicileri
 function setupGlobalEventListeners() {
-    nextBtn.addEventListener('click', () => {
-        currentQuestionIndex++;
-        loadQuestion();
-    });
+    const el = getElements();
 
-    // Ana Sayfa Buton Mantığı (Güvenli sıfırlama ve geçiş)
-    quizBackBtn.addEventListener('click', () => {
-        if(confirm("Mevcut test süreciniz sıfırlanacaktır. Ana sayfaya dönmek istiyor musunuz?")) {
-            goToHomeScreen();
-        }
-    });
+    if (el.nextBtn) {
+        el.nextBtn.replaceWith(el.nextBtn.cloneNode(true)); // Çift tetiklemeyi önlemek için temizle
+    }
+    
+    // Elemanları yeniden seç ve bağla
+    const freshEl = getElements();
 
-    restartBtn.addEventListener('click', goToHomeScreen);
-    exportWordBtn.addEventListener('click', exportToWordFile);
+    if (freshEl.nextBtn) {
+        freshEl.nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            loadQuestion();
+        });
+    }
+
+    if (freshEl.quizBackBtn) {
+        freshEl.quizBackBtn.addEventListener('click', () => {
+            if(confirm("Mevcut test süreciniz sıfırlanacaktır. Ana sayfaya dönmek istiyor musunuz?")) {
+                goToHomeScreen();
+            }
+        });
+    }
+
+    if (freshEl.restartBtn) {
+        freshEl.restartBtn.addEventListener('click', goToHomeScreen);
+    }
+
+    if (freshEl.exportWordBtn) {
+        freshEl.exportWordBtn.addEventListener('click', exportToWordFile);
+    }
 }
 
 function goToHomeScreen() {
-    quizScreen.classList.replace('block', 'hidden');
-    resultScreen.classList.add('hidden');
-    categoryScreen.classList.replace('hidden', 'block');
-    buildCategoryMenu(); 
+    const el = getElements();
+    if (el.quizScreen) el.quizScreen.style.display = 'none';
+    if (el.resultScreen) el.resultScreen.classList.add('hidden');
+    if (el.categoryScreen) el.categoryScreen.style.display = 'block';
+    buildCategoryMenu();
 }
 
 function showResults() {
-    quizScreen.classList.replace('block', 'hidden');
-    resultScreen.classList.remove('hidden');
+    const el = getElements();
+    if (el.quizScreen) el.quizScreen.style.display = 'none';
+    if (el.resultScreen) el.resultScreen.classList.remove('hidden');
     
-    categoryResultTitle.textContent = categoriesConfig[currentCategory];
-    correctCountText.textContent = score.correct;
-    wrongCountText.textContent = score.wrong;
+    if (el.categoryResultTitle) el.categoryResultTitle.textContent = categoriesConfig[currentCategory];
+    if (el.correctCountText) el.correctCountText.textContent = score.correct;
+    if (el.wrongCountText) el.wrongCountText.textContent = score.wrong;
 }
 
 function exportToWordFile() {
@@ -295,11 +339,9 @@ function exportToWordFile() {
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
             <meta charset="utf-8">
-            <title>Gelişmiş Çalışma Analiz Raporu</title>
             <style>
                 body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333333; }
                 h1 { color: #1d4ed8; text-align: center; font-size: 18pt; }
-                .meta { text-align: center; font-style: italic; color: #555555; margin-bottom: 15pt; }
                 .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
                 .summary-table th, .summary-table td { border: 1px solid #dddddd; padding: 8px; text-align: center; }
                 .summary-table th { background-color: #f3f4f6; }
@@ -310,7 +352,7 @@ function exportToWordFile() {
         </head>
         <body>
             <h1>ONLINE ÖĞRENME SİSTEMİ DETAYLI ANALİZ RAPORU</h1>
-            <div class="meta">Kategori: ${categoryName} | Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+            <p><b>Kategori:</b> ${categoryName} | <b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</p>
             <table class="summary-table">
                 <thead>
                     <tr><th>İlk Seferde Doğru Yapılan</th><th>Döngüsel Tekrara Düşen Soru Sayısı</th></tr>
@@ -347,4 +389,11 @@ function exportToWordFile() {
     URL.revokeObjectURL(url);
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// DOM tamamen yüklendiğinde güvenli başlatma sağla
+document.addEventListener('DOMContentLoaded', () => {
+    buildCategoryMenu();
+    setupGlobalEventListeners();
+});
+window.addEventListener('load', () => {
+    buildCategoryMenu();
+});
