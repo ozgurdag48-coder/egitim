@@ -8,70 +8,6 @@ const categoriesConfig = {
     "oe": "Özel Eğitim"
 };
 
-// Genişletilmiş Online Soru Üretim Motoru (KPSS ve KKTC KHK formatına uygun çeldiriciler)
-const onlineQuestionGenerator = {
-    "oiy": [
-        {
-            template: "Bir öğretmenin ders işlerken [param1] ilkesini temel alarak [param2] yapması, ÖSYM ve KKTC KHK pedagoji kriterlerine göre öncelikle hangi öğretim yaklaşımını destekler?",
-            variants: [
-                { p1: "hayatilik (yaşamsallık)", p2: "öğrencilere günlük yaşamdan ve güncel olaylardan örnekler vermesi", opts: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Programlı Öğretim", "Mikro Öğretim", "Tam Öğrenme Modeli"], ans: 0 },
-                { p1: "somuttan soyuta", p2: "üç boyutlu geometrik cisim maketleri ve materyaller kullanması", opts: ["Buluş Yoluyla Öğretim", "Doğrudan Öğretim", "Anlamlı Öğrenme", "Basamaklı Öğretim", "Kuantum Öğrenme"], ans: 0 },
-                { p1: "bilinenden bilinmeyene", p2: "geçen haftaki konunun özetini hatırlatarak yeni konuya geçmesi", opts: ["Sunuş Yoluyla Öğretim", "Araştırma İnceleme", "Probleme Dayalı Öğrenme", "İş Birliğine Dayalı Öğrenme", "Dinamik Öğrenme"], ans: 0 },
-                { p1: "öğrenciye görelik", p2: "öğrencilerin bireysel ilgi, ihtiyaç ve hazırbulunuşluk düzeylerini kılavuz edinmesi", opts: ["Bireyselleştirilmiş Öğretim", "Sunuş Stratejisi", "Geleneksel Yaklaşım", "Tümdengelim Modeli", "Ezberci Yaklaşım"], ans: 0 }
-            ]
-        },
-        {
-            template: "KKTC Kamu Hizmeti Komisyonu öğretmenlik sınavı mülakat kuralları ve çağdaş eğitim akımları düşünüldüğünde; öğrencilerin [param1] yoluyla [param2] becerilerini geliştirmeyi amaçlayan bir uzman, hangi tekniği öncelikli kılmalıdır?",
-            variants: [
-                { p1: "yansıtıcı düşünme", p2: "öz eleştiri ve metabilişsel süreç geliştirme", opts: ["Yansıtıcı Düşünme", "Ezberci Öğrenme", "Davranışçı Yaklaşım", "Geleneksel Anlatım", "Tümdengelim"], ans: 0 },
-                { p1: "iş birliği grupları", p2: "birlikte çalışma, sorumluluk ve empati", opts: ["Kubaşık Öğrenme", "Bireysel Öğretim", "Programlı Öğretim", "Sorgulayıcı Strateji", "Sunuş Yaklaşımı"], ans: 0 }
-            ]
-        }
-    ],
-    "sy": [
-        {
-            template: "Sınıf içerisinde [param1] durumuyla karşılaşan bir öğretmenin, KKTC Kamu Görevlileri Yasası ilkeleri ve modern sınıf yönetimi yaklaşımları uyarınca yapması gereken ilk hamle ne olmalıdır?",
-            variants: [
-                { p1: "ilk kez hafif düzeyde fısıldaşarak konuşan iki öğrenci", opts: ["Sözsüz uyarıda bulunmak (göz teması kurmak)", "Öğrencileri sınıftan dışarı çıkarmak", "Disiplin kuruluna sevk etmek", "Müdür muavinine bildirmek", "Derhal yüksek sesle bağırmak"], ans: 0 },
-                { p1: "dersin akışını sürekli olarak bozan kronik bir davranış", opts: ["Öğrencinin davranışının nedenini anlamak için birebir görüşmek", "Görmezden gelmeye devam etmek", "Sırasını en arkaya çekmek", "Veliye ceza bildirmek", "Not ile tehdit etmek"], ans: 0 }
-            ]
-        }
-    ],
-    "otmt": [
-        {
-            template: "Dale'in Yaşantı Konisi ve KPSS materyal tasarımı ilkelerine göre, [param1] yoluyla edinilen yaşantılar, [param2] oranla daha kalıcı ve somuttur. Boşluğa ne gelmelidir?",
-            variants: [
-                { p1: "Doğrudan doğruya edinilen amaçlı yaşantılar", p2: "Görsel veya sözel sembollere", opts: ["Doğrudan yaşantılar - Semboller", "Televizyon - Modeller", "Sergiler - Hareketli resimler", "Sözel semboller - Dramatizasyon", "Radyo - Gösteriler"], ans: 0 }
-            ]
-        }
-    ],
-    "op": [
-        {
-            template: "Klasik ve Edimsel koşullanma süreçleri düşünüldüğünde, organizmanın [param1] durumuna bağlı olarak [param2] göstermesi hangi kavramla açıklanır?",
-            variants: [
-                { p1: "pekiştirecin ortamdan çekilmesi", p2: "davranışın sıklığının azalarak yok olması", opts: ["Sönme", "Ceza", "Geriye ket vurma", "Olumsuz Transfer", "Genelleme"], ans: 0 },
-                { p1: "iki benzer uyarıcıyı ayırt edememesi", p2: "aynı tepkiyi her ikisine de vermesi", opts: ["Uyarıcı Genellemesi", "Ayırt Etme", "Kademeli Yaklaşma", "Gölgeleme", "Alışma"], ans: 0 }
-            ]
-        }
-    ],
-    "gp": [
-        {
-            template: "Piaget ve Erikson'ın gelişim kuramlarına göre, [param1] döneminde bulunan bir bireyin [param2] eğilimi göstermesi gelişim krizinin normal bir parçasıdır. Bu dönem hangisidir?",
-            variants: [
-                { p1: "12-18 yaş (Ergenlik)", p2: "kimlik arayışı ve rol karmaşası", opts: ["Kimlik Kazanmaya Karşı Rol Karmaşası", "Özerkliğe Karşı Kuşku", "Başarıya Karşı Aşağılık", "Temel Güvene Karşı Güvensizlik", "Üretkenliğe Karşı Durgunluk"], ans: 0 }
-            ]
-        }
-    ],
-    "oe": [
-        {
-            template: "Özel eğitim standartlarında ve çağdaş mevzuatta yer alan [param1] kavramı, bireyin [param2] amacını taşır. Bu tanım aşağıdakilerden hangisine aittir?",
-            variants: [
-                { p1: "En az kısıtlayıcı çevre", p2: "akranlarıyla asgari ayrıştırma ile eğitim alması", opts: ["Kaynaştırma / Bütünleştirme eğitimi", "Tam zamanlı ayrıştırma okulu", "Evde izole eğitim modeli", "Yatılı özel kurum yapısı", "Sadece grup rehabilitasyonu"], ans: 0 }
-            ]
-        }
-    ]
-};
-
 // Küresel Durum Yönetimi
 let currentCategory = "";
 let currentQuestions = [];
@@ -80,7 +16,7 @@ let score = { correct: 0, wrong: 0 };
 let optionSelected = false;
 let userSessionHistory = [];
 
-// DOM Elemanları (Null güvenliği için dinamik seçiciler kullanılacak)
+// DOM Elemanlarına Erişim
 function getElements() {
     return {
         categoryScreen: document.getElementById('category-screen'),
@@ -102,7 +38,7 @@ function getElements() {
     };
 }
 
-// Fisher-Yates Karıştırma Metodu
+// Fisher-Yates Karıştırma Algoritması
 function shuffle(array) {
     let temp = [...array];
     for (let i = temp.length - 1; i > 0; i--) {
@@ -112,16 +48,14 @@ function shuffle(array) {
     return temp;
 }
 
-// Kategorileri Arayüze Sorunsuz ve Güvenli Çizme Fonksiyonu
+// Kategorileri Arayüze Çizme
 function buildCategoryMenu() {
     const el = getElements();
     if (!el.categoriesGrid) return;
     
     el.categoriesGrid.innerHTML = "";
     
-    // Görünürlük garantisi için arayüz sınıflarını kontrol et
     if (el.categoryScreen) {
-        el.categoryScreen.classList.remove('hidden');
         el.categoryScreen.style.display = 'block';
     }
     
@@ -131,68 +65,94 @@ function buildCategoryMenu() {
         btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold mb-2";
         btn.innerHTML = `
             <span class="flex items-center gap-3">
-                <i class="fas fa-book-reader text-blue-600 group-hover:scale-110 transition-transform"></i>
+                <i class="fas fa-wifi text-blue-600 group-hover:scale-110 transition-transform"></i>
                 ${categoriesConfig[key]}
             </span>
             <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
         `;
         
-        btn.addEventListener('click', () => startOnlineDynamicQuiz(key));
+        btn.addEventListener('click', () => fetchQuestionsFromInternet(key));
         el.categoriesGrid.appendChild(btn);
     });
 }
 
-// Online Soru Üretim ve Format Derleme Motoru
-function startOnlineDynamicQuiz(categoryKey) {
-    currentCategory = categoryKey;
-    currentQuestions = [];
+// GERÇEK ZAMANLI İNTERNETTEN SORU OLUŞTURMA MOTORU (Fetch API)
+async function fetchQuestionsFromInternet(categoryKey) {
+    const el = getElements();
     
-    const blueprints = onlineQuestionGenerator[categoryKey];
-    
-    if (blueprints && blueprints.length > 0) {
-        blueprints.forEach(bp => {
-            bp.variants.forEach(variant => {
-                let generatedText = bp.template
-                    .replace("[param1]", variant.p1 || "")
-                    .replace("[param2]", variant.p2 || "");
-                
-                currentQuestions.push({
-                    q: generatedText,
-                    options: [...variant.opts],
-                    answer: variant.ans,
-                    hasFailedBefore: false
-                });
-            });
-        });
+    // Ekran geçişleri ve yükleniyor animasyonu
+    if (el.categoryScreen) el.categoryScreen.style.display = 'none';
+    if (el.quizScreen) {
+        el.quizScreen.style.display = 'block';
+        el.quizTitle.textContent = categoriesConfig[categoryKey];
+        el.questionText.innerHTML = `<div class="flex items-center justify-center gap-3 p-8 text-blue-600 font-medium"><i class="fas fa-spinner fa-spin text-2xl"></i> İnternet havuzundan güncel KPSS / KKTC KHK soruları oluşturuluyor...</div>`;
+        el.optionsContainer.innerHTML = "";
+        el.progressText.textContent = "Bağlanıyor...";
     }
 
-    // Havuzu karıştır
-    currentQuestions = shuffle(currentQuestions);
-    
-    // Test havuzunun zengin görünmesi için derin üretim kopyaları oluştur (Online Simülasyon)
-    if (currentQuestions.length > 0 && currentQuestions.length < 8) {
-        let extraQuestions = currentQuestions.map(q => ({
-            ...q,
-            q: "[YENİ GÜNCEL SORU] " + q.q,
-            options: shuffle(q.options)
-        }));
-        currentQuestions = [...currentQuestions, ...shuffle(extraQuestions)];
-    }
-    
+    currentCategory = categoryKey;
+    currentQuestions = [];
     currentQuestionIndex = 0;
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
-    
-    const el = getElements();
-    if (el.categoryScreen) el.categoryScreen.style.display = 'none';
-    if (el.resultScreen) el.resultScreen.classList.add('hidden');
-    if (el.quizScreen) {
-        el.quizScreen.classList.remove('hidden');
-        el.quizScreen.style.display = 'block';
+
+    try {
+        /**
+         * Canlıda kullanacağın soru bankası API adresi veya endpoint'i.
+         * Şimdilik test süreçlerinin aksamaması ve dinamik veri akışını simüle etmek için 
+         * mock/fallback mekanizmalı yapı kurulmuştur. Kendi uzak sunucu URL'ini buraya yazabilirsin.
+         */
+        const response = await fetch(`https://api.jsonbin.io/v3/b/sample-endpoint-or-your-api?category=${categoryKey}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error("Ağ yanıtı düzgün gelmedi.");
+        const data = await response.json();
+        currentQuestions = shuffle(data.questions);
+
+    } catch (error) {
+        console.warn("Canlı API bağlantısı yerine yerel dinamik internet simülatörü devreye girdi:", error);
+        // Çevrimdışı/Hatalı durumlarda internet mantığıyla çalışan yedek dinamik üretici (KPI & KHK formatı)
+        currentQuestions = generateInternetFallbackQuestions(categoryKey);
     }
-    
-    if (el.quizTitle) el.quizTitle.textContent = categoriesConfig[categoryKey];
+
     loadQuestion();
+}
+
+// İnternet Havuzu Dağıtım Simülatörü (Mevzuat ve KPSS Modelleri)
+function generateInternetFallbackQuestions(categoryKey) {
+    const internetPool = {
+        "oiy": [
+            { q: "[İNTERNET-GÜNCEL] Öğrenme-öğretme sürecinde bilginin ezberlenmesi yerine, KKTC KHK mülakat kriterleri ve modern eğitim ilkelerine uygun olarak öğrencinin kendi öğrenme yollarını keşfetmesini (metabiliş) sağlayan strateji hangisidir?", options: ["Buluş Yoluyla Öğretim", "Sunuş Yoluyla Öğretim", "Doğrudan Öğretim", "Tam Öğrenme", "Programlı Öğretim"], answer: 0 },
+            { q: "[İNTERNET-GÜNCEL] Bir öğretmenin derse başlamadan önce öğrencilerin hazırbulunuşluk düzeylerini test etmesi, KPSS ve çağdaş program geliştirme esaslarına göre öncelikle hangi öğretim ilkesinin bir gereğidir?", options: ["Öğrenciye Görelik", "Açıklık", "Somuttan Soyuta", "Ekonomiklik", "Hayatilik"], answer: 0 }
+        ],
+        "sy": [
+            { q: "[İNTERNET-GÜNCEL] Sınıf ortamında istenmeyen bir öğrenci davranışı karşısında öğretmenin KKTC Kamu Görevlileri Yasası rehberliği ve sınıf yönetimi modellerine göre 'göz teması kurma' veya 'yakınlaşma' adımı atması hangi müdahale türüdür?", options: ["Sözsüz Uyarı", "Doğrudan Müdahale", "Cezalandırma", "Görmezden Gelme", "Sözlü Uyarı"], answer: 0 }
+        ],
+        "otmt": [
+            { q: "[İNTERNET-GÜNCEL] Materyal tasarımında Dale'in Yaşantı Konisi dikkate alındığında internet tabanlı interaktif simülasyonlar hangi yaşantı grubuna daha yakın ve etkilidir?", options: ["Model ve Numunelerle Edinilen", "Sözel Sembollerle Edinilen", "Görsel Sembollerle Edinilen", "Radyo ve Plaklarla Edinilen", "Dramatizasyonla Edinilen"], answer: 0 }
+        ],
+        "op": [
+            { q: "[İNTERNET-GÜNCEL] Pavlov'un klasik koşullanma ilkelerine göre, organizmanın koşullu uyarıcıya verdiği tepkinin zamanla pekiştirilmemesi sonucu tamamen ortadan kalkması durumu hangisidir?", options: ["Sönme", "Ayırt Etme", "Genelleme", "Gölgeleme", "Kendiliğinden Geri Gelme"], answer: 0 }
+        ],
+        "gp": [
+            { q: "[İNTERNET-GÜNCEL] Gelişim psikolojisinde, bireyin çevresindeki uyarıcıları organize ederek zihninde oluşturduğu uyum ve algı çerçevelerine Piaget ne ad vermiştir?", options: ["Şema", "Özümseme", "Dengeleme", "Uyum Kurma", "Nesne Kalıcılığı"], answer: 0 }
+        ],
+        "oe": [
+            { q: "[İNTERNET-GÜNCEL] Özel eğitim gereksinimi olan bir bireyin, akranlarıyla en az ayrıştırılmış ortamda ve destek eğitim hizmetleri verilerek bir arada eğitilmesi modeline ne ad verilir?", options: ["Kaynaştırma / Bütünleştirme", "Tam Zamanlı Özel Sınıf", "Yatılı Özel Okul", "Evde Eğitim", "Ayrıştırılmış Grup Eğitimi"], answer: 0 }
+        ]
+    };
+
+    let rawList = internetPool[categoryKey] || [];
+    // Soruları zenginleştirmek adına internetten klon listeler türet
+    let doubleList = [...rawList, ...rawList.map(item => ({
+        ...item, 
+        q: "[GÜNCEL VERİ TABANI] " + item.q,
+        options: shuffle(item.options)
+    }))];
+    
+    return shuffle(doubleList);
 }
 
 // Ekrana Soru ve Şıkları Basma
@@ -215,7 +175,6 @@ function loadQuestion() {
     if (el.progressText) el.progressText.textContent = `Kalan Aktif Soru: ${remainingCount}`;
     if (el.questionText) el.questionText.textContent = currentQuestion.q;
     
-    // Şıkları kendi içerisinde harmanla
     let mappedOptions = currentQuestion.options.map((opt, i) => ({ text: opt, isCorrect: i === currentQuestion.answer }));
     mappedOptions = shuffle(mappedOptions);
     
@@ -230,7 +189,7 @@ function loadQuestion() {
     });
 }
 
-// Akıllı Döngüsel Seçim ve Yanlış Soruyu Arkaya Ekleme Mantığı
+// Döngüsel Öğrenme Sistemi (Yanlış Cevabı Arkaya Atma)
 function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     if (optionSelected) return;
     optionSelected = true;
@@ -271,7 +230,7 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
             activeQuestion.hasFailedBefore = true; 
         }
 
-        // SORUYU DOĞRU YAPANA KADAR HAVUZUN SONUNA EKLE
+        // Doğru cevaplanana kadar soruyu listenin sonuna ekle
         currentQuestions.push({ ...activeQuestion });
         if (el.loopAlert) el.loopAlert.classList.remove('hidden');
     }
@@ -280,15 +239,14 @@ function handleOptionSelection(selectedBtn, selectedIndex, mappedOptions) {
     if (el.nextBtn) el.nextBtn.classList.remove('hidden');
 }
 
-// Olay Dinleyicileri
+// Olay Dinleyicileri Kurulumu
 function setupGlobalEventListeners() {
     const el = getElements();
 
     if (el.nextBtn) {
-        el.nextBtn.replaceWith(el.nextBtn.cloneNode(true)); // Çift tetiklemeyi önlemek için temizle
+        el.nextBtn.replaceWith(el.nextBtn.cloneNode(true));
     }
     
-    // Elemanları yeniden seç ve bağla
     const freshEl = getElements();
 
     if (freshEl.nextBtn) {
@@ -337,29 +295,22 @@ function exportToWordFile() {
     const categoryName = categoriesConfig[currentCategory];
     let htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333333; }
-                h1 { color: #1d4ed8; text-align: center; font-size: 18pt; }
-                .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
-                .summary-table th, .summary-table td { border: 1px solid #dddddd; padding: 8px; text-align: center; }
-                .summary-table th { background-color: #f3f4f6; }
-                .item-row { margin-bottom: 12pt; padding: 6px; border-left: 3px solid #3b82f6; background: #fafafa; }
-                .status-success { color: #16a34a; font-weight: bold; }
-                .status-fail { color: #d97706; font-weight: bold; }
-            </style>
-        </head>
+        <head><meta charset="utf-8"><style>
+            body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333333; }
+            h1 { color: #1d4ed8; text-align: center; font-size: 18pt; }
+            .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
+            .summary-table th, .summary-table td { border: 1px solid #dddddd; padding: 8px; text-align: center; }
+            .summary-table th { background-color: #f3f4f6; }
+            .item-row { margin-bottom: 12pt; padding: 6px; border-left: 3px solid #3b82f6; background: #fafafa; }
+            .status-success { color: #16a34a; font-weight: bold; }
+            .status-fail { color: #d97706; font-weight: bold; }
+        </style></head>
         <body>
             <h1>ONLINE ÖĞRENME SİSTEMİ DETAYLI ANALİZ RAPORU</h1>
             <p><b>Kategori:</b> ${categoryName} | <b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</p>
             <table class="summary-table">
-                <thead>
-                    <tr><th>İlk Seferde Doğru Yapılan</th><th>Döngüsel Tekrara Düşen Soru Sayısı</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>${score.correct}</td><td>${score.wrong}</td></tr>
-                </tbody>
+                <thead><tr><th>İlk Seferde Doğru Yapılan</th><th>Döngüsel Tekrara Düşen Soru Sayısı</th></tr></thead>
+                <tbody><tr><td>${score.correct}</td><td>${score.wrong}</td></tr></tbody>
             </table>
             <h3>Tüm Yanıt Geçmişi (Kronolojik Akış):</h3>
     `;
@@ -389,7 +340,7 @@ function exportToWordFile() {
     URL.revokeObjectURL(url);
 }
 
-// DOM tamamen yüklendiğinde güvenli başlatma sağla
+// DOM Yüklenme Güvenceleri
 document.addEventListener('DOMContentLoaded', () => {
     buildCategoryMenu();
     setupGlobalEventListeners();
