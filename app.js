@@ -1,4 +1,4 @@
-// Eski Ana Konu Başlık Tanımlamaları
+// Belirttiğin Ana Konu Başlıklarının KPSS Tanımlamaları
 const categoriesConfig = {
     "oiy": "Öğretim İlke ve Yöntemleri",
     "sy": "Sınıf Yönetimi",
@@ -8,7 +8,7 @@ const categoriesConfig = {
     "oe": "Özel Eğitim"
 };
 
-// Kalıcı Hafıza: Önceki testlerde yanlış yapılan soruları kategorisine göre burada saklıyoruz
+// Kalıcı Yanlış Soru Havuzu (Sadece gerçekten yanlış yapılanları tutar)
 let globalWrongQuestionsPool = {
     "oiy": [], "sy": [], "otmt": [], "op": [], "gp": [], "oe": []
 };
@@ -36,12 +36,11 @@ function getElements() {
         categoryResultTitle: document.getElementById('category-result-title'),
         correctCountText: document.getElementById('correct-count'),
         wrongCountText: document.getElementById('wrong-count'),
-        restartBtn: document.getElementById('restart-btn'),
-        exportWordBtn: document.getElementById('export-word-btn')
+        restartBtn: document.getElementById('restart-btn')
     };
 }
 
-// Fisher-Yates Benzersiz Karıştırma Algoritması
+// Karıştırma Fonksiyonu
 function shuffle(array) {
     let temp = [...array];
     for (let i = temp.length - 1; i > 0; i--) {
@@ -51,7 +50,7 @@ function shuffle(array) {
     return temp;
 }
 
-// Kategorileri Arayüze Çizme
+// Kategorileri Menüye Basma
 function buildCategoryMenu() {
     const el = getElements();
     if (!el.categoriesGrid) return;
@@ -61,33 +60,33 @@ function buildCategoryMenu() {
     
     Object.keys(categoriesConfig).forEach(key => {
         const wrongCount = globalWrongQuestionsPool[key].length;
-        const badge = wrongCount > 0 ? `<span class="ml-2 bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">${wrongCount} Hatalı Soru Havuzda</span>` : '';
+        const badge = wrongCount > 0 ? `<span class="ml-2 bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full">${wrongCount} Hata Hafızada</span>` : '';
         
         const btn = document.createElement('button');
         btn.type = "button";
         btn.className = "p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 text-left transition-all duration-200 cursor-pointer flex justify-between items-center group w-full text-slate-800 font-semibold mb-2";
         btn.innerHTML = `
             <span class="flex items-center gap-2">
-                <i class="fas fa-sync text-blue-600 group-hover:rotate-180 transition-transform duration-500"></i>
+                <i class="fas fa-book-open text-blue-600"></i>
                 ${categoriesConfig[key]} ${badge}
             </span>
             <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
         `;
         
-        btn.addEventListener('click', () => fetchQuestionsAndMix(key));
+        btn.addEventListener('click', () => startNewUniqueQuiz(key));
         el.categoriesGrid.appendChild(btn);
     });
 }
 
-// İNTERNETTEN BENZERSİZ VERİ ÇEKEN VE SIFIRDAN DERLEYEN ANA MOTOR
-async function fetchQuestionsAndMix(categoryKey) {
+// YENİ VE TEMİZ TEST OLUŞTURMA MOTORU
+async function startNewUniqueQuiz(categoryKey) {
     const el = getElements();
     
     if (el.categoryScreen) el.categoryScreen.style.display = 'none';
     if (el.quizScreen) {
         el.quizScreen.style.display = 'block';
         el.quizTitle.textContent = categoriesConfig[categoryKey];
-        el.questionText.innerHTML = `<div class="flex items-center justify-center gap-3 p-8 text-blue-600 font-medium"><i class="fas fa-spinner fa-spin text-2xl"></i> İnternet havuzundan benzersiz KPSS / KKTC KHK test kombinasyonu oluşturuluyor...</div>`;
+        el.questionText.innerHTML = `<div class="flex items-center justify-center gap-3 p-8 text-blue-600 font-medium"><i class="fas fa-spinner fa-spin text-2xl"></i> KPSS Soru Havuzundan Benzersiz Test Derleniyor...</div>`;
         el.optionsContainer.innerHTML = "";
     }
 
@@ -97,112 +96,25 @@ async function fetchQuestionsAndMix(categoryKey) {
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
 
-    let freshIncomingQuestions = [];
-
-    try {
-        // Tarayıcının önbellekten (cache) eski soruları getirmesini engellemek için dinamik zaman damgası ekledik
-        const response = await fetch(`https://api.jsonbin.io/v3/b/mock-kpss-kktc?category=${categoryKey}&_nocache=${Date.now()}`);
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        if(data && data.questions) freshIncomingQuestions = data.questions;
-    } catch (e) {
-        // Gerçek zamanlı benzersiz soru kombinasyon fabrikası
-        freshIncomingQuestions = generateTrueUniqueQuestions(categoryKey, 5);
-    }
-
-    // Önceki testlerde yanlış yapılan soruları çek
-    const previousWrongs = [...globalWrongQuestionsPool[categoryKey]];
+    // 1. Orijinal KPSS Soru Bankasından ilgili kategoriye ait taze soruları çek
+    let freshPool = getKpssQuestionBank(categoryKey);
     
-    // Mükerrer (aynı) soru olmaması için filtrele
-    const filteredFresh = freshIncomingQuestions.filter(nq => !previousWrongs.some(wq => wq.q === nq.q));
+    // 2. Önceki testlerden kalan aktif yanlışları getir
+    let previousWrongs = [...globalWrongQuestionsPool[categoryKey]];
 
-    // Yeni benzersiz sorular ile geçmiş yanlışları harmanla ve karıştır
-    currentQuestions = shuffle([...previousWrongs, ...filteredFresh]);
+    // TEMİZLİK GÜVENCESİ: Eğer taze havuzda yanlışlardan biri varsa mükerrer olmasın diye taze havuzdan eliyoruz
+    let filteredFresh = freshPool.filter(fq => !previousWrongs.some(wq => wq.id === fq.id));
+
+    // 3. Yanlışlar ile yenileri harmanla ve tamamen rastgele karıştır
+    let mixedSet = shuffle([...previousWrongs, ...filteredFresh]);
+
+    // Her testte çözülebilir dengeli bir sayı (Örn: 4 veya 5 soru) sınırla
+    currentQuestions = mixedSet.slice(0, 5);
 
     loadQuestion();
 }
 
-// HER ÇAĞRILDIĞINDA SIFIRDAN BENZERSİZ KOMBİNASYON ÜRETEN SİMÜLASYON FABRİKASI
-function generateTrueUniqueQuestions(categoryKey, count = 5) {
-    // Soru kalıpları için değişken parametre havuzu (Her seferinde farklı eşleşsinler diye)
-    const kktcMevzuatParams = [
-        { kurum: "KKTC Kamu Hizmeti Komisyonu (KHK)", yasa: "7/1979 Kamu Görevlileri Yasası" },
-        { kurum: "KKTC Milli Eğitim Bakanlığı", yasa: "Öğretmenler Yasası ve KKTC Anayasası" },
-        { kurum: "Mevzuat ve KHK Sınav Tüzüğü", yasa: "Kamu Görevlileri Genel İlkeleri" }
-    ];
-
-    const pedagogicScenarios = {
-        "oiy": [
-            { text: "Öğretmenin ders işlerken [param1] ilkesine bağlı kalması ve öğrencilere [param2] yaptırması çağdaş süreç odaklı eğitim yaklaşımını destekler.", opts: ["Bilinenden Bilinmeyene - Eski şemaları canlandırma", "Hayatilik - Günlük yaşam problemi çözme", "Somuttan Soyuta - Materyal tasarlama", "Ekonomiklik - Zamanı verimli kullanma", "Açıklık - Sade dil kullanma"], ans: 1, exp: "Günlük yaşam durumlarını sınıfa getirmek 'Hayatilik' ilkesidir ve öğrencilerin transfer yeteneğini geliştirir." },
-            { text: "[param3] uyarınca düzenlenen öğretmen yeterlik kriterlerinde; öğrencilerin [param1] becerilerini geliştirmek için ders planında [param2] modeline yer verilmesi istenir.", opts: ["Yansıtıcı Düşünme - Öz değerlendirme günlükleri", "Ezberci Yaklaşım - Soru cevap", "Buluş Yolu - Doğrudan düz anlatım", "Tam Öğrenme - Sadece test çözme", "Programlı Öğretim - Sınıfça ilerleme"], ans: 0, exp: "Kullanıcının kendi öğrenme süreçlerini sorgulaması ve günlük tutması 'Yansıtıcı Düşünme' ile doğrudan ilgilidir." }
-        ],
-        "sy": [
-            { text: "Sınıf ortamında [param1] problemi yaşandığında, [param3] ilkelerine göre öğretmenin ilk aşamada [param2] yöntemini seçmesi gerekir.", opts: ["ilk defa kuralları ihlal etme - sözsüz uyarıda bulunma", "kronik disiplinsizlik - sınıftan uzaklaştırma", "şiddet eğilimi - disiplin kuruluna sevk", "derse geç kalma - yok yazma", "fısıldaşma - veliye bildirme"], ans: 0, exp: "Sınıf yönetimindeki 'en az müdahale' ilkesi gereği, dersin akışını bozmayan ilk ufak hatada sözsüz uyaranlar (bakış, yakınlık) kullanılır." }
-        ],
-        "otmt": [
-            { text: "Dale'in Yaşantı Konisi ve KPSS materyal geliştirme standartlarına göre, [param1] aracılığıyla kazanılan deneyimler, [param2] kıyasla her zaman daha kalıcı ve somuttur.", opts: ["Doğrudan doğruya edinilen amaçlı yaşantılar - Sözel sembollere", "Televizyon programları - Model ve maketlere", "Görsel semboller - Dramatizasyonlara", "Radyo dinletileri - Sergileri gezmeye", "Yazılı metinler - Bilgisayar simülasyonlarına"], ans: 0, exp: "Bireyin bizzat içinde bulunduğu, yaparak ve yaşayarak elde ettiği doğrudan yaşantılar piramidin en tabanında yer alır ve en kalıcı olanıdır." }
-        ],
-        "op": [
-            { text: "Davranışçı kuramın pekiştirme süreçleri analiz edildiğinde; organizmaya [param1] uygulanması sonucunda [param2] durumu gözlemlenir.", opts: ["pekiştiricinin tamamen kesilmesi - davranışın sönmesi", "olumlu pekiştireç verilmesi - davranışın durması", "ceza verilmesi - davranışın kalıcı öğrenilmesi", "sürekli pekiştirme yapılması - ayırt etmenin artması", "olumsuz pekiştireç - organizmanın tamamen pasifleşmesi"], ans: 0, exp: "Pekiştirilmeyen davranışlar zamanla sıklığını kaybeder ve en nihayetinde 'Sönme' evresine girer." }
-        ],
-        "gp": [
-            { text: "Gelişim psikolojisi ilkeleri ve Piaget'nin bilişsel gelişim kuramı ekseninde; bir çocuğun [param1] yeteneğini kazanması, onun [param2] dönemine geçtiğini tesciller.", opts: ["Soyut mantık yürütebilme - Soyut İşlemler", "Nesne kalıcılığı - Sezgisel dönem", "Korunum kavramı - Duyusal motor", "Benmerkezci düşünme - Somut işlemler", "Tümdengelim yapabilme - İşlem öncesi"], ans: 0, exp: "Soyut ve hipotetik düşünme, önermeli mantık yürütme süreçleri ergenlikle beraber Soyut İşlemler döneminde (11-12 yaş üzeri) başlar." }
-        ],
-        "oe": [
-            { text: "Modern rehberlik tüzükleri ve özel eğitim mevzuatları gereğince; özel gereksinimli bir bireyin [param1] temel alınarak [param2] modeline tabi tutulması çağdaş bir zorunluluktur.", opts: ["En az kısıtlayıcı çevre ilkesi - Kaynaştırma / Bütünleştirme", "Bireysel yetersizlikleri - Tam zamanlı izolasyon", "Ekonomik durumu - Yatılı yurt yapısı", "Sadece tıbbi tanısı - Ağır rehabilitasyon", "Veli isteği - Evde kapalı öğretim"], ans: 0, exp: "Çağdaş özel eğitim anlayışı, bireyin akranlarından koparılmadan 'En az kısıtlayıcı çevre' içerisinde yani Kaynaştırma eğitimiyle topluma kazandırılmasını savunur." }
-        ]
-    };
-
-    let generatedList = [];
-    const templates = pedagogicScenarios[categoryKey] || pedagogicScenarios["oiy"];
-
-    // Belirtilen sayı kadar tamamen benzersiz varyasyon türet
-    for (let i = 0; i < count; i++) {
-        templates.forEach(t => {
-            // Rastgele parametre setleri seçiliyor (Sonsuz varyasyon döngüsü)
-            const randomMevzuat = kktcMevzuatParams[Math.floor(Math.random() * kktcMevzuatParams.length)];
-            
-            let finalQuestionText = t.text
-                .replace("[param3]", randomMevzuat.yasa)
-                .replace("[param1]", "KPSS ve " + randomMevzuat.kurum + " kriterlerindeki")
-                .replace("[param2]", "özel modüllere uygun");
-
-            // Eğer özgün şablon parametreleri varsa onları koru veya zenginleştir
-            if(t.text.includes("[param1]") && t.opts && t.opts[0]) {
-                const parts = t.opts[0].split(" - ");
-                finalQuestionText = t.text
-                    .replace("[param3]", randomMevzuat.yasa)
-                    .replace("[param1]", parts[0] || "çağdaş")
-                    .replace("[param2]", parts[1] || "yöntemler");
-            }
-
-            // Soruya eşsiz bir kimlik kazandırmak için başına ID/Varyasyon kodu basıyoruz
-            const uniqueId = `[KOD: ${categoryKey.toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}] `;
-            
-            generatedList.push({
-                q: uniqueId + finalQuestionText,
-                options: shuffle([...t.opts]),
-                // Şıklar karıştığı için doğru cevabın metnini bulup yeni indexini atayacağız
-                answer: t.ans, 
-                originalCorrectText: t.opts[t.ans],
-                explanation: `${randomMevzuat.kurum} sınav formatı analizi: ${t.exp}`,
-                hasFailedBefore: false
-            });
-        });
-    }
-
-    // Şıkların yerlerini ve doğru cevap indexlerini karıştırma sonrası sabitleme yaması
-    generatedList.forEach(item => {
-        const newIdx = item.options.indexOf(item.originalCorrectText);
-        if (newIdx !== -1) {
-            item.answer = newIdx;
-        }
-    });
-
-    return shuffle(generatedList).slice(0, 6); // Her testte 6 benzersiz soru sun
-}
-
-// Soru ve Şıkları Ekranda Listeleme
+// Soru ve Şıkları Listeleme
 function loadQuestion() {
     const el = getElements();
     if (el.nextBtn) el.nextBtn.classList.add('hidden');
@@ -217,35 +129,40 @@ function loadQuestion() {
     if (el.progressText) el.progressText.textContent = `Soru: ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
     if (el.questionText) el.questionText.textContent = currentQuestion.q;
     
-    currentQuestion.options.forEach((optionText, index) => {
+    // Şıkların yerini sınav başında karıştırıyoruz
+    let originalOptions = currentQuestion.options.map((opt, idx) => ({
+        text: opt,
+        isCorrect: idx === currentQuestion.answer
+    }));
+    
+    let shuffledOptions = shuffle(originalOptions);
+    // Yeni doğru şık indeksini bulup soru nesnesine dinamik işleyelim (Doğruluk kontrolü sapmasın)
+    currentQuestion.dynamicCorrectIdx = shuffledOptions.findIndex(o => o.isCorrect);
+    currentQuestion.dynamicOptionsList = shuffledOptions.map(o => o.text);
+
+    shuffledOptions.forEach((option, index) => {
         const btn = document.createElement('button');
         btn.type = "button";
         btn.className = "w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer flex items-center font-medium text-gray-700 bg-white mb-2 shadow-sm option-choice-btn";
-        btn.innerHTML = `<span class="inline-block bg-gray-100 text-gray-600 rounded-md px-2 py-1 mr-3 text-sm font-bold option-index-patch">${String.fromCharCode(65 + index)}</span> <span class="flex-1">${optionText}</span>`;
+        btn.innerHTML = `<span class="inline-block bg-gray-100 text-gray-600 rounded-md px-2 py-1 mr-3 text-sm font-bold option-index-patch">${String.fromCharCode(65 + index)}</span> <span class="flex-1">${option.text}</span>`;
         
-        btn.addEventListener('click', () => selectOptionSessiz(btn, index));
+        btn.addEventListener('click', () => {
+            const buttons = el.optionsContainer.querySelectorAll('.option-choice-btn');
+            buttons.forEach(b => {
+                b.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-900');
+                b.querySelector('.option-index-patch').classList.remove('bg-blue-600', 'text-white');
+            });
+            btn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-900');
+            btn.querySelector('.option-index-patch').classList.add('bg-blue-600', 'text-white');
+            btn.setAttribute('data-selected-idx', index);
+            if (el.nextBtn) el.nextBtn.classList.remove('hidden');
+        });
+        
         if (el.optionsContainer) el.optionsContainer.appendChild(btn);
     });
 }
 
-// Seçim Yapma İşlemi
-function selectOptionSessiz(selectedBtn, selectedIndex) {
-    const el = getElements();
-    const buttons = el.optionsContainer.querySelectorAll('.option-choice-btn');
-    
-    buttons.forEach(btn => {
-        btn.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-900');
-        btn.querySelector('.option-index-patch').classList.remove('bg-blue-600', 'text-white');
-    });
-
-    selectedBtn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-900');
-    selectedBtn.querySelector('.option-index-patch').classList.add('bg-blue-600', 'text-white');
-    selectedBtn.setAttribute('data-selected-idx', selectedIndex);
-    
-    if (el.nextBtn) el.nextBtn.classList.remove('hidden');
-}
-
-// Sonraki Soruya Geçiş Kontrolü
+// Soru Geçişi ve Doğru/Yanlış Havuz Yönetimi (Hatalı Kod Arındırma Noktası)
 function processAndNext() {
     const el = getElements();
     const activeQuestion = currentQuestions[currentQuestionIndex];
@@ -254,23 +171,25 @@ function processAndNext() {
     if (!selectedBtn) return;
     
     const selectedIndex = parseInt(selectedBtn.getAttribute('data-selected-idx'));
-    const isCorrect = selectedIndex === activeQuestion.answer;
+    const isCorrect = selectedIndex === activeQuestion.dynamicCorrectIdx;
 
     if (isCorrect) {
         score.correct++;
-        globalWrongQuestionsPool[currentCategory] = globalWrongQuestionsPool[currentCategory].filter(q => q.q !== activeQuestion.q);
+        // DOĞRU BİLİNDİYSE: global havuzdan ID eşleşmesiyle TAMAMEN TEMİZLE (Eski kod hatası buradaydı)
+        globalWrongQuestionsPool[currentCategory] = globalWrongQuestionsPool[currentCategory].filter(q => q.id !== activeQuestion.id);
     } else {
         score.wrong++;
-        if (!globalWrongQuestionsPool[currentCategory].some(q => q.q === activeQuestion.q)) {
+        // YANLIŞ BİLİNDİYSE: Havuzda mükerrer kayıt oluşmasını engelle, yoksa ekle
+        if (!globalWrongQuestionsPool[currentCategory].some(q => q.id === activeQuestion.id)) {
             globalWrongQuestionsPool[currentCategory].push(activeQuestion);
         }
     }
 
     userSessionHistory.push({
         question: activeQuestion.q,
-        options: activeQuestion.options,
+        options: activeQuestion.dynamicOptionsList,
         userAnswerIdx: selectedIndex,
-        correctAnswerIdx: activeQuestion.answer,
+        correctAnswerIdx: activeQuestion.dynamicCorrectIdx,
         explanation: activeQuestion.explanation,
         isSuccess: isCorrect
     });
@@ -279,7 +198,7 @@ function processAndNext() {
     loadQuestion();
 }
 
-// Test Bitimi Sonuç ve Detaylı Gerekçe Raporu Ekranı
+// Test Bittikten Sonra Analiz ve Çözüm Gerekçesi Ekranı
 function showResults() {
     const el = getElements();
     if (el.quizScreen) el.quizScreen.style.display = 'none';
@@ -297,23 +216,23 @@ function showResults() {
         el.resultScreen.appendChild(reportContainer);
     }
 
-    reportContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="fas fa-paste text-blue-600"></i> Soru Çözüm Analizleri & Gerekçeleri</h3>`;
+    reportContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="fas fa-file-alt text-blue-600"></i> KPSS Soru Çözümleri ve Gerekçeleri</h3>`;
 
     userSessionHistory.forEach((item, index) => {
         const card = document.createElement('div');
-        card.className = `p-5 rounded-xl border ${item.isSuccess ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'} shadow-sm mb-4`;
+        card.className = `p-5 rounded-xl border ${item.isSuccess ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'} shadow-sm mb-4`;
         
         let optionsHtml = '';
         item.options.forEach((opt, oIdx) => {
             let optStyle = "text-gray-700";
-            if (oIdx === item.correctAnswerIdx) optStyle = "text-emerald-700 font-bold flex items-center gap-1.5";
-            if (oIdx === item.userAnswerIdx && !item.isSuccess) optStyle = "text-rose-700 font-bold flex items-center gap-1.5";
+            if (oIdx === item.correctAnswerIdx) optStyle = "text-emerald-700 font-bold flex items-center gap-1";
+            if (oIdx === item.userAnswerIdx && !item.isSuccess) optStyle = "text-rose-700 font-bold flex items-center gap-1";
             
             optionsHtml += `
-                <div class="text-sm p-2 rounded bg-white/70 mb-1 ${optStyle}">
+                <div class="text-sm p-2 rounded bg-white/80 mb-1 ${optStyle}">
                     <b>${String.fromCharCode(65 + oIdx)})</b> ${opt}
-                    ${oIdx === item.correctAnswerIdx ? '<i class="fas fa-check-circle text-emerald-600 text-xs"></i> (Doğru Cevap)' : ''}
-                    ${oIdx === item.userAnswerIdx && !item.isSuccess ? '<i class="fas fa-times-circle text-rose-600 text-xs"></i> (Sizin Cevabınız)' : ''}
+                    ${oIdx === item.correctAnswerIdx ? ' <i class="fas fa-check text-emerald-600"></i> (Doğru Cevap)' : ''}
+                    ${oIdx === item.userAnswerIdx && !item.isSuccess ? ' <i class="fas fa-times text-rose-600"></i> (Sizin Cevabınız)' : ''}
                 </div>
             `;
         });
@@ -323,14 +242,42 @@ function showResults() {
                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${item.isSuccess ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">${index + 1}</span>
                 <p class="font-semibold text-gray-800 flex-1">${item.question}</p>
             </div>
-            <div class="my-3 pl-8">${optionsHtml}</div>
-            <div class="mt-3 pl-8 border-t border-gray-200/60 pt-3 text-sm text-slate-700 leading-relaxed">
-                <strong class="text-blue-800 block mb-1"><i class="fas fa-info-circle"></i> Çözüm ve Gerekçeli Açıklama:</strong>
+            <div class="my-3 pl-6">${optionsHtml}</div>
+            <div class="mt-2 pl-6 pt-2 border-t border-dashed border-gray-200 text-sm text-slate-700">
+                <strong class="text-blue-900 block mb-1"><i class="fas fa-lightbulb"></i> Akademik Gerekçe & Çözüm:</strong>
                 ${item.explanation}
             </div>
         `;
         reportContainer.appendChild(card);
     });
+}
+
+// BAŞLIKLARA GÖRE ÖZGÜN KPSS SORU BANKASI HAVUZU
+function getKpssQuestionBank(categoryKey) {
+    const bank = {
+        "oiy": [
+            { id: "oiy_1", q: "Bir öğretmen, bölme işlemini anlatırken öğrencilerin daha önceki sınıflarda öğrenmiş olduğu çarpma işlemi bilgilerinden yararlanmaktadır. Öğretmenin bu uygulaması hangi öğretim ilkesiyle doğrudan ilişkilidir?", options: ["Bilinenden bilinmeyene", "Somuttan soyuta", "Yakından uzağa", "Açıklık", "Ekonomiklik"], answer: 0, explanation: "Yeni öğrenilecek bir konunun, öğrencinin hazırbulunuşluk düzeyinde var olan eski bilgilerle ilişkilendirilerek anlatılması 'Bilinenden Bilinmeyene' ilkesinin temel kuralıdır." },
+            { id: "oiy_2", q: "Öğrencilerin gerçek yaşam problemlerine çözümler ürettiği, disiplinler arası bağ kurduğu ve somut bir ürün ortaya koyduğu çağdaş öğretim yöntemi hangisidir?", options: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Örnek Olay Yöntemi", "Beyin Fırtınası", "Anlatım Yöntemi"], answer: 0, explanation: "Proje tabanlı öğrenmede temel amaç; gerçek yaşam senaryoları üzerinde çalışarak disiplinler arası bir yaklaşımla özgün, somut bir ürün veya performans üretmektir." },
+            { id: "oiy_3", q: "Kavram haritaları, anlam çözümleme tabloları ve örgütleyiciler aşağıdaki öğretim stratejilerinden en çok hangisinde etkilidir?", options: ["Sunuş Yoluyla Öğretim", "Buluş Yoluyla Öğretim", "Araştırma-İnceleme", "Tam Öğrenme", "Kubaşık Öğrenme"], answer: 0, explanation: "Ausubel'in sunuş yoluyla öğretim stratejisinde bilgilerin organize edilmesi, zihinsel şemaların yapılandırılması için ön organize ediciler ve kavram haritaları birincil araçlardır." }
+        ],
+        "sy": [
+            { id: "sy_1", q: "Sınıf kuralları belirlenirken dikkat edilmesi gereken en temel pedagojik kural aşağıdakilerden hangisidir?", options: ["Kuralları öğrencilerle birlikte belirlemek", "Kuralları okul idaresine onaylatmak", "Emir kipi içeren olumsuz ifadeler kullanmak", "Kuralları olabildiğince uzun ve detaylı yazmak", "Cezaları kuralların yanına açıkça eklemek"], answer: 0, explanation: "Sınıf kurallarına uyulma düzeyini artıran en önemli faktör, kuralların demokratik bir yaklaşımla öğretmen ve öğrencilerin ortak katılımıyla belirlenmesidir." },
+            { id: "sy_2", q: "Ders esnasında iki öğrencinin kendi arasında fısıldaşarak konuştuğunu fark eden bir öğretmenin sınıf yönetimi modellerine göre atması gereken 'en az müdahale' içeren ilk adım ne olmalıdır?", options: ["Öğrencilerle göz teması kurmak veya yanlarına yaklaşmak", "Öğrencileri sınıftan dışarı çıkarmak", "İsimlerini yüksek sesle bağırarak uyarmak", "Hemen disiplin formu doldurmak", "Durumu görmezden gelerek konuyu anlatmaya devam etmek"], answer: 0, explanation: "Sınıfta istenmeyen davranışlara müdahale edilirken 'en az müdahale' ilkesi uygulanır. Dersin akışını bozmadan sözsüz (göz teması, fiziksel yakınlık) uyaranlar ilk sırada yer almalıdır." }
+        ],
+        "otmt": [
+            { id: "otmt_1", q: "Edgar Dale'in Yaşantı Konisi temel alındığında, bir öğrenme sürecinde kalıcılığı ve somutluğu en yüksek olan öğrenme yaşantısı aşağıdakilerden hangisidir?", options: ["Doğrudan doğruya edinilen amaçlı yaşantılar", "Model ve maketlerle edinilen yaşantılar", "Televizyon ve hareketli resimler", "Görsel semboller ve grafikler", "Sözel semboller ve kelimeler"], answer: 0, explanation: "Dale'in Yaşantı Konisi'nin en tabanında 'Doğrudan edinilen yaşantılar' bulunur. Öğrenci sürece tüm duyu organlarıyla aktif katıldığı için öğrenme en kalıcı hale gelir." }
+        ],
+        "op": [
+            { id: "op_1", q: "Klasik koşullanma sürecinde, organizmaya koşullu uyarıcı verildikten sonra uzun süre pekiştireç (koşulsuz uyarıcı) verilmezse hangi durumun ortaya çıkması beklenir?", options: ["Sönme", "Genelleme", "Ayırt etme", "Gölgeleme", "Kendiliğinden geri gelme"], answer: 0, explanation: "Koşullu tepki oluştuktan sonra, ortamdan ödül/pekiştireç uzun süre çekilirse, kazanılan o yapay davranış azalarak tamamen kaybolur. Buna 'Sönme' denir." }
+        ],
+        "gp": [
+            { id: "gp_1", q: "Piaget'nin bilişsel gelişim kuramına göre, bir çocuğun nesneleri sadece dış görünüşlerine göre değil, hacim ve ağırlık gibi boyutlarının değişmediğini kavrayabilmesi hangi dönemin kazancıdır?", options: ["Somut İşlemler Dönemi", "İşlem Öncesi Dönem", "Duyusal Motor Dönemi", "Soyut İşlemler Dönemi", "Sezgisel Dönem"], answer: 0, explanation: "Maddelerin şekli değişse de özünün/miktarının değişmediğini algılama becerisi olan 'Korunum Kavramı', Somut İşlemler döneminde (7-11 yaş) kazanılır." }
+        ],
+        "oe": [
+            { id: "oe_1", q: "Özel eğitim ihtiyacı olan öğrencilerin, akranlarından ayrıştırılmadan destek eğitim hizmetleri de sunularak normal sınıflarda eğitim görmelerini amaçlayan çağdaş model hangisidir?", options: ["Kaynaştırma / Bütünleştirme Eğitimi", "Özel Alt Sınıf Modeli", "Yatılı Özel Eğitim Okulu", "Evde Eğitim Hizmeti", "Ayrıştırılmış Eğitim Kampüsü"], answer: 0, explanation: "Kaynaştırma eğitimi, özel gereksinimli bireyin 'en az kısıtlayıcı eğitim ortamında' yani normal akranlarıyla bir arada, gerekli destek sağlanarak eğitilmesini esas alır." }
+        ]
+    };
+    return bank[categoryKey] || [];
 }
 
 function goToHomeScreen() {
@@ -341,33 +288,21 @@ function goToHomeScreen() {
     buildCategoryMenu();
 }
 
-// Olay Dinleyicileri Kurulumu
 function setupGlobalEventListeners() {
     const el = getElements();
-
     if (el.nextBtn) {
         el.nextBtn.replaceWith(el.nextBtn.cloneNode(true));
     }
-    
     const freshEl = getElements();
-    if (freshEl.nextBtn) {
-        freshEl.nextBtn.addEventListener('click', processAndNext);
-    }
-
+    if (freshEl.nextBtn) freshEl.nextBtn.addEventListener('click', processAndNext);
     if (freshEl.quizBackBtn) {
         freshEl.quizBackBtn.addEventListener('click', () => {
-            if(confirm("Mevcut test süreciniz sıfırlanacaktır. Ana sayfaya dönmek istiyor musunuz?")) {
-                goToHomeScreen();
-            }
+            if(confirm("Test süreciniz sıfırlanacaktır. Ana sayfaya dönmek istiyor musunuz?")) goToHomeScreen();
         });
     }
-
-    if (freshEl.restartBtn) {
-        freshEl.restartBtn.addEventListener('click', goToHomeScreen);
-    }
+    if (freshEl.restartBtn) freshEl.restartBtn.addEventListener('click', goToHomeScreen);
 }
 
-// DOM Yüklenme Tetikleyicileri
 document.addEventListener('DOMContentLoaded', () => {
     buildCategoryMenu();
     setupGlobalEventListeners();
