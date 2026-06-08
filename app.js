@@ -1,4 +1,4 @@
-// Belirttiğin Ana Konu Başlıklarının KPSS Tanımlamaları
+// Konu Başlıkları
 const categoriesConfig = {
     "oiy": "Öğretim İlke ve Yöntemleri",
     "sy": "Sınıf Yönetimi",
@@ -8,19 +8,50 @@ const categoriesConfig = {
     "oe": "Özel Eğitim"
 };
 
-// Kalıcı Yanlış Soru Havuzu (Sadece gerçekten yanlış yapılanları tutar)
-let globalWrongQuestionsPool = {
-    "oiy": [], "sy": [], "otmt": [], "op": [], "gp": [], "oe": []
-};
-
-// Küresel Durum Yönetimi
+// Kalıcı Hafıza Önbelleği
+let globalWrongQuestionsPool = { "oiy": [], "sy": [], "otmt": [], "op": [], "gp": [], "oe": [] };
 let currentCategory = "";
 let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = { correct: 0, wrong: 0 };
-let userSessionHistory = []; 
+let userSessionHistory = [];
 
-// DOM Elemanlarına Erişim
+// --- LOCALSTORAGE VERİ TABANI MOTORU ---
+// Uygulama ilk kez açıldığında boş kalmasın diye yüklenecek olan kaliteli KPSS Başlangıç Seti
+const defaultKpssQuestions = [
+    { id: "oiy_init_1", category: "oiy", q: "Bir öğretmen, bölme işlemini anlatırken öğrencilerin geçmiş yıllarda öğrendiği çarpma işlemi bilgilerini kontrol etmiş ve hatırlatmıştır. Öğretmenin bu yaklaşımı hangi öğretim ilkesiyle doğrudan örtüşür?", options: ["Bilinenden bilinmeyene", "Somuttan soyuta", "Yakından uzağa", "Açıklık", "Bireyselleştirme"], answer: 0, explanation: "Yeni bilgilerin mevcut zihinsel şemalar ve eski öğrenmeler üzerine inşa edilmesi 'Bilinenden Bilinmeyene' ilkesidir." },
+    { id: "oiy_init_2", category: "oiy", q: "Öğrencilerin gruplar halinde çalışarak somut, disiplinler arası bir ürün ortaya koydukları ve gerçek yaşam senaryolarına dayalı çözümler geliştirdikleri öğretim yöntemi hangisidir?", options: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Anlatım Yöntemi", "Beyin Fırtınası", "Örnek Olay Modeli"], answer: 0, explanation: "Proje tabanlı öğrenme, sürecin sonunda mutlaka somut, sergilenebilir özgün bir ürünün ya da performansın ortaya konmasını gerektirir." },
+    { id: "sy_init_1", category: "sy", q: "Sınıf yönetiminde kurallar belirlenirken uyulması gereken öncelikli pedagojik kriter aşağıdakilerden hangisidir?", options: ["Kuralları öğrencilerle birlikte belirlemek", "Kuralları tamamen okul yönetimine bırakmak", "Olumsuz ifadeler seçmek", "Kuralların listesini uzun tutmak", "Cezaları açıkça yazmak"], answer: 0, explanation: "Demokratik sınıf yönetiminde kurallar ortak katılımıyla belirlenirse, öğrencilerin kuralları içselleştirmesi kolaylaşır." },
+    { id: "otmt_init_1", category: "otmt", q: "Edgar Dale'in Yaşantı Konisi modeline göre, kalıcılığı ve somut öğrenme düzeyi en yüksek olan yaşantı türü aşağıdakilerden hangisidir?", options: ["Doğrudan doğruya edinilen amaçlı yaşantılar", "Model ve maketlerle edinilen yaşantılar", "Televizyon ve hareketli görüntüler", "Görsel semboller", "Sözel semboller"], answer: 0, explanation: "Yaşantı Konisi'nin en tabanında yer alan 'Doğrudan edinilen yaşantılar', yaparak-yaşayarak öğrendiğimiz en kalıcı deneyimlerdir." },
+    { id: "op_init_1", category: "op", q: "Klasik koşullanma oluştuktan sonra, organizmaya koşullu uyarıcı verilmesine rağmen uzun süre koşulsuz uyarıcı verilmezse, koşullu tepkinin azalarak yok olması durumu hangisidir?", options: ["Sönme", "Genelleme", "Ayırt etme", "Gölgeleme", "Kendiliğinden geri gelme"], answer: 0, explanation: "Ödülle desteklenmeyen koşullu uyarıcılar zamanla etkisini yitirir ve davranışın ortadan kalkması yani 'Sönme' gerçekleşir." },
+    { id: "gp_init_1", category: "gp", q: "Piaget'nin Bilişsel Gelişim Kuramı'na göre, bir çocuğun nesnelerin şekli değişse dahi miktar veya ağırlıklarının değişmediğini kavraması (Korunum) hangi dönemin temel kazancıdır?", options: ["Somut İşlemler Dönemi", "İşlem Öncesi Dönem", "Duyusal Motor Dönemi", "Soyut İşlemler Dönemi", "Sezgisel Dönem"], answer: 0, explanation: "Maddenin miktarının değişmediğini algılama becerisi olan 'Korunum', Somut İşlemler döneminde (7-11 yaş) kazanılır." },
+    { id: "oe_init_1", category: "oe", q: "Özel gereksinimli bireylerin, akranlarından koparılmadan, en az kısıtlayıcı eğitim ortamında normal sınıflarda eğitim alması modeline ne ad verilir?", options: ["Kaynaştırma / Bütünleştirme Eğitimi", "Özel Alt Sınıf Uygulaması", "Ayrıştırılmış Eğitim Kampüsü", "Yatılı Özel Okul Hizmeti", "Evde İzole Eğitim"], answer: 0, explanation: "Modern özel eğitim anlayışı, bireyleri toplumdan soyutlamayan 'Kaynaştırma / Bütünleştirme' modelini esas alır." }
+];
+
+// Tarayıcı hafızasını başlatan fonksiyon
+function initLocalDatabase() {
+    if (!localStorage.getItem('kpss_question_repository')) {
+        localStorage.setItem('kpss_question_repository', JSON.stringify(defaultKpssQuestions));
+    }
+}
+
+// Dışarıdan panel vasıtasıyla yeni soru ekleme fonksiyonu (Gelecekte kullanman için hazırlandı)
+function addNewQuestionToRepository(category, questionText, optionsArray, correctIndex, explanationText) {
+    let repo = JSON.parse(localStorage.getItem('kpss_question_repository')) || [];
+    let newQuestion = {
+        id: "custom_" + Date.now() + "_" + Math.floor(Math.random() * 100),
+        category: category,
+        q: questionText,
+        options: optionsArray,
+        answer: parseInt(correctIndex),
+        explanation: explanationText
+    };
+    repo.push(newQuestion);
+    localStorage.setItem('kpss_question_repository', JSON.stringify(repo));
+    buildCategoryMenu(); // Menüdeki sayıları / durumları tazele
+}
+// -------------------------------------------
+
 function getElements() {
     return {
         categoryScreen: document.getElementById('category-screen'),
@@ -40,7 +71,6 @@ function getElements() {
     };
 }
 
-// Karıştırma Fonksiyonu
 function shuffle(array) {
     let temp = [...array];
     for (let i = temp.length - 1; i > 0; i--) {
@@ -50,8 +80,8 @@ function shuffle(array) {
     return temp;
 }
 
-// Kategorileri Menüye Basma
 function buildCategoryMenu() {
+    initLocalDatabase();
     const el = getElements();
     if (!el.categoriesGrid) return;
     
@@ -78,15 +108,13 @@ function buildCategoryMenu() {
     });
 }
 
-// YENİ VE TEMİZ TEST OLUŞTURMA MOTORU
-async function startNewUniqueQuiz(categoryKey) {
+function startNewUniqueQuiz(categoryKey) {
     const el = getElements();
-    
     if (el.categoryScreen) el.categoryScreen.style.display = 'none';
     if (el.quizScreen) {
         el.quizScreen.style.display = 'block';
         el.quizTitle.textContent = categoriesConfig[categoryKey];
-        el.questionText.innerHTML = `<div class="flex items-center justify-center gap-3 p-8 text-blue-600 font-medium"><i class="fas fa-spinner fa-spin text-2xl"></i> KPSS Soru Havuzundan Benzersiz Test Derleniyor...</div>`;
+        el.questionText.innerHTML = `<div class="flex items-center justify-center gap-3 p-8 text-blue-600 font-medium"><i class="fas fa-spinner fa-spin text-2xl"></i> Yerel Veri Tabanından Test Kombinasyonu Derleniyor...</div>`;
         el.optionsContainer.innerHTML = "";
     }
 
@@ -96,25 +124,23 @@ async function startNewUniqueQuiz(categoryKey) {
     score = { correct: 0, wrong: 0 };
     userSessionHistory = [];
 
-    // 1. Orijinal KPSS Soru Bankasından ilgili kategoriye ait taze soruları çek
-    let freshPool = getKpssQuestionBank(categoryKey);
+    // 1. Tarayıcı yerel deposundan tüm havuzu oku ve filtrele
+    let fullRepo = JSON.parse(localStorage.getItem('kpss_question_repository')) || [];
+    let freshPool = fullRepo.filter(q => q.category === categoryKey);
     
-    // 2. Önceki testlerden kalan aktif yanlışları getir
+    // 2. Aktif yanlış havuzunu getir
     let previousWrongs = [...globalWrongQuestionsPool[categoryKey]];
 
-    // TEMİZLİK GÜVENCESİ: Eğer taze havuzda yanlışlardan biri varsa mükerrer olmasın diye taze havuzdan eliyoruz
+    // Mükerrer engelleme
     let filteredFresh = freshPool.filter(fq => !previousWrongs.some(wq => wq.id === fq.id));
 
-    // 3. Yanlışlar ile yenileri harmanla ve tamamen rastgele karıştır
+    // 3. Harmanlama ve Karıştırma
     let mixedSet = shuffle([...previousWrongs, ...filteredFresh]);
-
-    // Her testte çözülebilir dengeli bir sayı (Örn: 4 veya 5 soru) sınırla
-    currentQuestions = mixedSet.slice(0, 5);
+    currentQuestions = mixedSet.slice(0, 5); // 5 Soru getirir
 
     loadQuestion();
 }
 
-// Soru ve Şıkları Listeleme
 function loadQuestion() {
     const el = getElements();
     if (el.nextBtn) el.nextBtn.classList.add('hidden');
@@ -129,14 +155,12 @@ function loadQuestion() {
     if (el.progressText) el.progressText.textContent = `Soru: ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
     if (el.questionText) el.questionText.textContent = currentQuestion.q;
     
-    // Şıkların yerini sınav başında karıştırıyoruz
     let originalOptions = currentQuestion.options.map((opt, idx) => ({
         text: opt,
         isCorrect: idx === currentQuestion.answer
     }));
     
     let shuffledOptions = shuffle(originalOptions);
-    // Yeni doğru şık indeksini bulup soru nesnesine dinamik işleyelim (Doğruluk kontrolü sapmasın)
     currentQuestion.dynamicCorrectIdx = shuffledOptions.findIndex(o => o.isCorrect);
     currentQuestion.dynamicOptionsList = shuffledOptions.map(o => o.text);
 
@@ -162,7 +186,6 @@ function loadQuestion() {
     });
 }
 
-// Soru Geçişi ve Doğru/Yanlış Havuz Yönetimi (Hatalı Kod Arındırma Noktası)
 function processAndNext() {
     const el = getElements();
     const activeQuestion = currentQuestions[currentQuestionIndex];
@@ -175,11 +198,9 @@ function processAndNext() {
 
     if (isCorrect) {
         score.correct++;
-        // DOĞRU BİLİNDİYSE: global havuzdan ID eşleşmesiyle TAMAMEN TEMİZLE (Eski kod hatası buradaydı)
         globalWrongQuestionsPool[currentCategory] = globalWrongQuestionsPool[currentCategory].filter(q => q.id !== activeQuestion.id);
     } else {
         score.wrong++;
-        // YANLIŞ BİLİNDİYSE: Havuzda mükerrer kayıt oluşmasını engelle, yoksa ekle
         if (!globalWrongQuestionsPool[currentCategory].some(q => q.id === activeQuestion.id)) {
             globalWrongQuestionsPool[currentCategory].push(activeQuestion);
         }
@@ -198,7 +219,6 @@ function processAndNext() {
     loadQuestion();
 }
 
-// Test Bittikten Sonra Analiz ve Çözüm Gerekçesi Ekranı
 function showResults() {
     const el = getElements();
     if (el.quizScreen) el.quizScreen.style.display = 'none';
@@ -250,34 +270,6 @@ function showResults() {
         `;
         reportContainer.appendChild(card);
     });
-}
-
-// BAŞLIKLARA GÖRE ÖZGÜN KPSS SORU BANKASI HAVUZU
-function getKpssQuestionBank(categoryKey) {
-    const bank = {
-        "oiy": [
-            { id: "oiy_1", q: "Bir öğretmen, bölme işlemini anlatırken öğrencilerin daha önceki sınıflarda öğrenmiş olduğu çarpma işlemi bilgilerinden yararlanmaktadır. Öğretmenin bu uygulaması hangi öğretim ilkesiyle doğrudan ilişkilidir?", options: ["Bilinenden bilinmeyene", "Somuttan soyuta", "Yakından uzağa", "Açıklık", "Ekonomiklik"], answer: 0, explanation: "Yeni öğrenilecek bir konunun, öğrencinin hazırbulunuşluk düzeyinde var olan eski bilgilerle ilişkilendirilerek anlatılması 'Bilinenden Bilinmeyene' ilkesinin temel kuralıdır." },
-            { id: "oiy_2", q: "Öğrencilerin gerçek yaşam problemlerine çözümler ürettiği, disiplinler arası bağ kurduğu ve somut bir ürün ortaya koyduğu çağdaş öğretim yöntemi hangisidir?", options: ["Proje Tabanlı Öğrenme", "Sunuş Yoluyla Öğretim", "Örnek Olay Yöntemi", "Beyin Fırtınası", "Anlatım Yöntemi"], answer: 0, explanation: "Proje tabanlı öğrenmede temel amaç; gerçek yaşam senaryoları üzerinde çalışarak disiplinler arası bir yaklaşımla özgün, somut bir ürün veya performans üretmektir." },
-            { id: "oiy_3", q: "Kavram haritaları, anlam çözümleme tabloları ve örgütleyiciler aşağıdaki öğretim stratejilerinden en çok hangisinde etkilidir?", options: ["Sunuş Yoluyla Öğretim", "Buluş Yoluyla Öğretim", "Araştırma-İnceleme", "Tam Öğrenme", "Kubaşık Öğrenme"], answer: 0, explanation: "Ausubel'in sunuş yoluyla öğretim stratejisinde bilgilerin organize edilmesi, zihinsel şemaların yapılandırılması için ön organize ediciler ve kavram haritaları birincil araçlardır." }
-        ],
-        "sy": [
-            { id: "sy_1", q: "Sınıf kuralları belirlenirken dikkat edilmesi gereken en temel pedagojik kural aşağıdakilerden hangisidir?", options: ["Kuralları öğrencilerle birlikte belirlemek", "Kuralları okul idaresine onaylatmak", "Emir kipi içeren olumsuz ifadeler kullanmak", "Kuralları olabildiğince uzun ve detaylı yazmak", "Cezaları kuralların yanına açıkça eklemek"], answer: 0, explanation: "Sınıf kurallarına uyulma düzeyini artıran en önemli faktör, kuralların demokratik bir yaklaşımla öğretmen ve öğrencilerin ortak katılımıyla belirlenmesidir." },
-            { id: "sy_2", q: "Ders esnasında iki öğrencinin kendi arasında fısıldaşarak konuştuğunu fark eden bir öğretmenin sınıf yönetimi modellerine göre atması gereken 'en az müdahale' içeren ilk adım ne olmalıdır?", options: ["Öğrencilerle göz teması kurmak veya yanlarına yaklaşmak", "Öğrencileri sınıftan dışarı çıkarmak", "İsimlerini yüksek sesle bağırarak uyarmak", "Hemen disiplin formu doldurmak", "Durumu görmezden gelerek konuyu anlatmaya devam etmek"], answer: 0, explanation: "Sınıfta istenmeyen davranışlara müdahale edilirken 'en az müdahale' ilkesi uygulanır. Dersin akışını bozmadan sözsüz (göz teması, fiziksel yakınlık) uyaranlar ilk sırada yer almalıdır." }
-        ],
-        "otmt": [
-            { id: "otmt_1", q: "Edgar Dale'in Yaşantı Konisi temel alındığında, bir öğrenme sürecinde kalıcılığı ve somutluğu en yüksek olan öğrenme yaşantısı aşağıdakilerden hangisidir?", options: ["Doğrudan doğruya edinilen amaçlı yaşantılar", "Model ve maketlerle edinilen yaşantılar", "Televizyon ve hareketli resimler", "Görsel semboller ve grafikler", "Sözel semboller ve kelimeler"], answer: 0, explanation: "Dale'in Yaşantı Konisi'nin en tabanında 'Doğrudan edinilen yaşantılar' bulunur. Öğrenci sürece tüm duyu organlarıyla aktif katıldığı için öğrenme en kalıcı hale gelir." }
-        ],
-        "op": [
-            { id: "op_1", q: "Klasik koşullanma sürecinde, organizmaya koşullu uyarıcı verildikten sonra uzun süre pekiştireç (koşulsuz uyarıcı) verilmezse hangi durumun ortaya çıkması beklenir?", options: ["Sönme", "Genelleme", "Ayırt etme", "Gölgeleme", "Kendiliğinden geri gelme"], answer: 0, explanation: "Koşullu tepki oluştuktan sonra, ortamdan ödül/pekiştireç uzun süre çekilirse, kazanılan o yapay davranış azalarak tamamen kaybolur. Buna 'Sönme' denir." }
-        ],
-        "gp": [
-            { id: "gp_1", q: "Piaget'nin bilişsel gelişim kuramına göre, bir çocuğun nesneleri sadece dış görünüşlerine göre değil, hacim ve ağırlık gibi boyutlarının değişmediğini kavrayabilmesi hangi dönemin kazancıdır?", options: ["Somut İşlemler Dönemi", "İşlem Öncesi Dönem", "Duyusal Motor Dönemi", "Soyut İşlemler Dönemi", "Sezgisel Dönem"], answer: 0, explanation: "Maddelerin şekli değişse de özünün/miktarının değişmediğini algılama becerisi olan 'Korunum Kavramı', Somut İşlemler döneminde (7-11 yaş) kazanılır." }
-        ],
-        "oe": [
-            { id: "oe_1", q: "Özel eğitim ihtiyacı olan öğrencilerin, akranlarından ayrıştırılmadan destek eğitim hizmetleri de sunularak normal sınıflarda eğitim görmelerini amaçlayan çağdaş model hangisidir?", options: ["Kaynaştırma / Bütünleştirme Eğitimi", "Özel Alt Sınıf Modeli", "Yatılı Özel Eğitim Okulu", "Evde Eğitim Hizmeti", "Ayrıştırılmış Eğitim Kampüsü"], answer: 0, explanation: "Kaynaştırma eğitimi, özel gereksinimli bireyin 'en az kısıtlayıcı eğitim ortamında' yani normal akranlarıyla bir arada, gerekli destek sağlanarak eğitilmesini esas alır." }
-        ]
-    };
-    return bank[categoryKey] || [];
 }
 
 function goToHomeScreen() {
